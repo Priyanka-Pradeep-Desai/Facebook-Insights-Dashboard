@@ -210,7 +210,7 @@ try:
         server.login(sender_email, password)
         server.sendmail(sender_email, receiver_emails, message.as_string())
 
-    st.success("📧 Dashboard link sent to priyankadesai1999@gmail.com")
+    st.success("📧 Dashboard link sent to receiver mails accordingly. See you after 3 days!")
 
 except Exception as e:
     st.error(f"❌ Failed to send email.\n\nError:\n{e}")
