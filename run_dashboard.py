@@ -20,6 +20,7 @@ client = gspread.authorize(creds)
 
 # Step 2: Open the spreadsheet by URL
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1apkZJsJHEd1HfDoHBAx9cPM-BmJxjIRiagB_F5KehHo/edit"
+DASHBOARD_URL = "https://facebook-insights-dashboard-elxpadltekfwuqpbur66q2.streamlit.app/"
 TAB_NAME = "Facebook: Post Insights"
 
 try:
@@ -192,7 +193,7 @@ try:
       <body>
         <p>Hello,<br><br>
            Your <b>Facebook Insights Dashboard</b> for the week <b>{week_range}</b> is ready.<br>
-           <a href="{SPREADSHEET_URL}" target="_blank">Click here to view the dashboard</a>.<br><br>
+           <a href="{DASHBOARD_URL}" target="_blank">Click here to view the dashboard</a>.<br><br>
            Regards,<br>
            Insights Bot
         </p>
