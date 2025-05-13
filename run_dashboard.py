@@ -179,15 +179,13 @@ try:
     password = st.secrets["GMAIL_PASS"]
     receiver_emails = ["priyankadesai1999@gmail.com", "tom.basey@gmail.com"]
 
-    message["To"] = ", ".join(receiver_emails)
-
     if not sender_email or not password:
         raise ValueError("GMAIL_USER or GMAIL_PASS environment variable is missing.")
 
     message = MIMEMultipart("alternative")
     message["Subject"] = "📊 Facebook Dashboard Link"
     message["From"] = sender_email
-    message["To"] = receiver_email
+    message["To"] = ", ".join(receiver_emails)
 
     text = f"Hello,\n\nYour Facebook Insights Dashboard for the week {week_range} is ready.\n\nView Dashboard: {SPREADSHEET_URL}\n\nRegards,\nInsights Bot"
     html = f"""
