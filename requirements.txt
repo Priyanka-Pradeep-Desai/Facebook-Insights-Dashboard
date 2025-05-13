@@ -1,5 +1,6 @@
+streamlit
+pandas
 gspread
 oauth2client
-pandas
 duckdb
-streamlit
+plotly
