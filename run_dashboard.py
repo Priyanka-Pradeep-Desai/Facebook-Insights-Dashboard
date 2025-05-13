@@ -174,8 +174,8 @@ st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
 
 # Step 8: Email Automation (Secure via environment variables)
 try:
-    sender_email = os.environ.get("GMAIL_USER")
-    password = os.environ.get("GMAIL_PASS")
+    sender_email = sender_email = st.secrets["GMAIL_USER"]
+    password = st.secrets["GMAIL_PASS"]
     receiver_email = "priyankadesai1999@gmail.com"
 
     if not sender_email or not password:
