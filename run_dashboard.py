@@ -177,7 +177,9 @@ st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
 try:
     sender_email = sender_email = st.secrets["GMAIL_USER"]
     password = st.secrets["GMAIL_PASS"]
-    receiver_email = "priyankadesai1999@gmail.com"
+    receiver_emails = ["priyankadesai1999@gmail.com", "tom.basey@gmail.com"]
+
+    message["To"] = ", ".join(receiver_emails)
 
     if not sender_email or not password:
         raise ValueError("GMAIL_USER or GMAIL_PASS environment variable is missing.")
@@ -208,7 +210,7 @@ try:
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(sender_email, password)
-        server.sendmail(sender_email, receiver_email, message.as_string())
+        server.sendmail(sender_email, receiver_emails, message.as_string())
 
     st.success("📧 Dashboard link sent to priyankadesai1999@gmail.com")
 
