@@ -41,17 +41,6 @@ except Exception as e:
     st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
 
-def should_send_email_session(days_interval=3):
-    now = pd.Timestamp.now()
-    last_sent_str = st.session_state.get("last_email_sent", None)
-    if last_sent_str:
-        last_sent = pd.to_datetime(last_sent_str)
-        if (now - last_sent).days < days_interval:
-            return False
-    # Update session state
-    st.session_state["last_email_sent"] = str(now)
-    return True
-
 # Step 4: Filter last complete week (Sunday to Saturday)
 today = pd.Timestamp.today().normalize()
 last_sunday = today - pd.to_timedelta(today.weekday() + 1, unit='D')
@@ -185,24 +174,49 @@ link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactio
 link_table['Permanent_Link'] = link_table['Permanent_Link'].apply(lambda url: f'<a href="{url}" target="_blank">View Post</a>')
 st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
 
+# Set path to the timestamp file
+file_path = os.path.join(os.path.dirname(__file__), "last_email_sent.txt")
+
+def should_send_email_local(file_path, days_interval=3):
+    try:
+        path = Path(file_path)
+        now = pd.Timestamp.now()
+
+        if path.exists():
+            last_sent_str = path.read_text().strip()
+            if last_sent_str:
+                last_sent = pd.to_datetime(last_sent_str)
+                diff_days = (now - last_sent).days
+                if diff_days < days_interval:
+                    st.info(f"⏱️ Last email was sent {diff_days} days ago. Email will be sent after {days_interval - diff_days} more day(s).")
+                    return False
+
+        # ✅ More than 3 days passed, update the file
+        path.write_text(now.isoformat())
+        return True
+
+    except Exception as e:
+        st.warning(f"⚠️ Error checking or updating the timestamp file: {e}")
+        return False
+    
 # Step 8: Email Automation (every 3 days using session state)
-if should_send_email_session():
+if should_send_email_local(file_path):
     try:
         sender_email = st.secrets["GMAIL_USER"]
         password = st.secrets["GMAIL_PASS"]
-        receiver_emails = ["priyankadesai1999@gmail.com", "priyankapradeepdesai@gmail.com"]
+        receiver_emails = ["priyankadesai1999@gmail.com", "tom.basey@gmail.com"]
 
         message = MIMEMultipart("alternative")
         message["Subject"] = "📊 Facebook Dashboard Link"
         message["From"] = sender_email
         message["To"] = ", ".join(receiver_emails)
 
-        text = f"Hello,\n\nYour Facebook Insights Dashboard for the week {week_range} is ready.\n\nView Dashboard: {SPREADSHEET_URL}\n\nRegards,\nInsights Bot"
+        text = f"Hello,\n\nYour Facebook Insights Dashboard is ready.\n\nView Dashboard: {DASHBOARD_URL}\n\nRegards,\nInsights Bot"
         html = f"""
         <html>
           <body>
             <p>Hello,<br><br>
-               Your <b>Facebook Insights Dashboard</b> for the week <b>{week_range}</b> is ready.<br>
+               Your <b>Facebook Insights Dashboard</b> is ready.<br>
                <a href="{DASHBOARD_URL}" target="_blank">Click here to view the dashboard</a>.<br><br>
                Regards,<br>
                Insights Bot
@@ -220,10 +234,12 @@ if should_send_email_session():
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_emails, message.as_string())
 
-        st.success("📧 Dashboard link sent. See you after 3 days!")
+        st.success("📧 Email sent successfully!")
+
     except Exception as e:
         st.error(f"❌ Failed to send email.\n\nError:\n{e}")
 else:
-    st.info("⏱️ Email not sent — already sent within the last 3 days.")
+    st.info("✅ No email sent today. It's not time yet.")
+
 
 
