@@ -11,6 +11,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from oauth2client.service_account import ServiceAccountCredentials
 import json
+from pathlib import Path
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -39,6 +40,25 @@ try:
 except Exception as e:
     st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
+
+def should_send_email_local(file_path="last_email_sent.txt", days_interval=3):
+    try:
+        path = Path(file_path)
+        if path.exists():
+            with open(path, "r") as file:
+                last_sent_str = file.read().strip()
+                if last_sent_str:
+                    last_sent = pd.to_datetime(last_sent_str)
+                    now = pd.Timestamp.now()
+                    if (now - last_sent).days < days_interval:
+                        return False  # Too soon to send another email
+        # Update timestamp
+        with open(file_path, "w") as file:
+            file.write(str(pd.Timestamp.now()))
+        return True
+    except Exception as e:
+        st.warning(f"⚠️ Could not check or update email log file. Skipping email.\n\nError:\n{e}")
+        return False
 
 # Step 4: Filter last complete week (Sunday to Saturday)
 today = pd.Timestamp.today().normalize()
@@ -173,44 +193,44 @@ link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactio
 link_table['Permanent_Link'] = link_table['Permanent_Link'].apply(lambda url: f'<a href="{url}" target="_blank">View Post</a>')
 st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
 
-# Step 8: Email Automation (Secure via environment variables)
-try:
-    sender_email = sender_email = st.secrets["GMAIL_USER"]
-    password = st.secrets["GMAIL_PASS"]
-    receiver_emails = ["priyankadesai1999@gmail.com", "tom.basey@gmail.com"]
+# Step 8: Email Automation (once every 3 days using local file)
+if should_send_email_local():
+    try:
+        sender_email = st.secrets["GMAIL_USER"]
+        password = st.secrets["GMAIL_PASS"]
+        receiver_emails = ["priyankadesai1999@gmail.com", "tom.basey@gmail.com"]
 
-    if not sender_email or not password:
-        raise ValueError("GMAIL_USER or GMAIL_PASS environment variable is missing.")
+        message = MIMEMultipart("alternative")
+        message["Subject"] = "📊 Facebook Dashboard Link"
+        message["From"] = sender_email
+        message["To"] = ", ".join(receiver_emails)
 
-    message = MIMEMultipart("alternative")
-    message["Subject"] = "📊 Facebook Dashboard Link"
-    message["From"] = sender_email
-    message["To"] = ", ".join(receiver_emails)
+        text = f"Hello,\n\nYour Facebook Insights Dashboard for the week {week_range} is ready.\n\nView Dashboard: {SPREADSHEET_URL}\n\nRegards,\nInsights Bot"
+        html = f"""
+        <html>
+          <body>
+            <p>Hello,<br><br>
+               Your <b>Facebook Insights Dashboard</b> for the week <b>{week_range}</b> is ready.<br>
+               <a href="{DASHBOARD_URL}" target="_blank">Click here to view the dashboard</a>.<br><br>
+               Regards,<br>
+               Insights Bot
+            </p>
+          </body>
+        </html>
+        """
 
-    text = f"Hello,\n\nYour Facebook Insights Dashboard for the week {week_range} is ready.\n\nView Dashboard: {SPREADSHEET_URL}\n\nRegards,\nInsights Bot"
-    html = f"""
-    <html>
-      <body>
-        <p>Hello,<br><br>
-           Your <b>Facebook Insights Dashboard</b> for the week <b>{week_range}</b> is ready.<br>
-           <a href="{DASHBOARD_URL}" target="_blank">Click here to view the dashboard</a>.<br><br>
-           Regards,<br>
-           Insights Bot
-        </p>
-      </body>
-    </html>
-    """
+        part1 = MIMEText(text, "plain")
+        part2 = MIMEText(html, "html")
+        message.attach(part1)
+        message.attach(part2)
 
-    part1 = MIMEText(text, "plain")
-    part2 = MIMEText(html, "html")
-    message.attach(part1)
-    message.attach(part2)
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_emails, message.as_string())
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(sender_email, password)
-        server.sendmail(sender_email, receiver_emails, message.as_string())
+        st.success("📧 Dashboard link sent. See you after 3 days!")
+    except Exception as e:
+        st.error(f"❌ Failed to send email.\n\nError:\n{e}")
+else:
+    st.info("⏱️ Email not sent — already sent within the last 3 days.")
 
-    st.success("📧 Dashboard link sent to receiver mails accordingly. See you after 3 days!")
-
-except Exception as e:
-    st.error(f"❌ Failed to send email.\n\nError:\n{e}")
