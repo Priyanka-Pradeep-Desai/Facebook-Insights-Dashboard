@@ -41,24 +41,16 @@ except Exception as e:
     st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
 
-def should_send_email_local(file_path="last_email_sent.txt", days_interval=3):
-    try:
-        path = Path(file_path)
-        if path.exists():
-            with open(path, "r") as file:
-                last_sent_str = file.read().strip()
-                if last_sent_str:
-                    last_sent = pd.to_datetime(last_sent_str)
-                    now = pd.Timestamp.now()
-                    if (now - last_sent).days < days_interval:
-                        return False  # Too soon to send another email
-        # Update timestamp
-        with open(file_path, "w") as file:
-            file.write(str(pd.Timestamp.now()))
-        return True
-    except Exception as e:
-        st.warning(f"⚠️ Could not check or update email log file. Skipping email.\n\nError:\n{e}")
-        return False
+def should_send_email_session(days_interval=3):
+    now = pd.Timestamp.now()
+    last_sent_str = st.session_state.get("last_email_sent", None)
+    if last_sent_str:
+        last_sent = pd.to_datetime(last_sent_str)
+        if (now - last_sent).days < days_interval:
+            return False
+    # Update session state
+    st.session_state["last_email_sent"] = str(now)
+    return True
 
 # Step 4: Filter last complete week (Sunday to Saturday)
 today = pd.Timestamp.today().normalize()
@@ -193,8 +185,8 @@ link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactio
 link_table['Permanent_Link'] = link_table['Permanent_Link'].apply(lambda url: f'<a href="{url}" target="_blank">View Post</a>')
 st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
 
-# Step 8: Email Automation (once every 3 days using local file)
-if should_send_email_local():
+# Step 8: Email Automation (every 3 days using session state)
+if should_send_email_session():
     try:
         sender_email = st.secrets["GMAIL_USER"]
         password = st.secrets["GMAIL_PASS"]
@@ -233,4 +225,5 @@ if should_send_email_local():
         st.error(f"❌ Failed to send email.\n\nError:\n{e}")
 else:
     st.info("⏱️ Email not sent — already sent within the last 3 days.")
+
 
