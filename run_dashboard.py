@@ -75,17 +75,27 @@ total_impressions = int(weekly_df['Total_Impressions'].sum())
 # Step 6: Styled KPI Metrics in dark mode-friendly cards
 metric_style = """
     <div style="
-        background-color: #1e1e1e;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        padding: 25px 15px;
         text-align: center;
-        margin-bottom: 20px;
+        transition: transform 0.2s ease;
     ">
-        <div style="font-size: 16px; color: #AAAAAA;">{label}</div>
-        <div style="font-size: 22px; font-weight: bold; color: #FFFFFF;">{value}</div>
+        <div style="font-size: 15px; color: #cccccc; font-weight: 500; margin-bottom: 6px;">{label}</div>
+        <div style="font-size: 26px; font-weight: 700; color: #ffffff;">{value}</div>
     </div>
 """
+st.markdown("""
+    <style>
+    div[data-testid="column"] > div:hover {
+        transform: scale(1.02);
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 
 col1, col2, col3 = st.columns(3)
 with col1:
