@@ -85,15 +85,20 @@ st.markdown("""
     box-shadow: 0 6px 18px rgba(0,0,0,0.4);
     padding: 40px 20px;
     margin: 25px 0;
-    gap: 20px;
+    gap: 24px;
 }}
 .kpi-item {{
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 16px;
-    padding: 20px 25px;
-    width: 160px;
+    width: 180px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     text-align: center;
+    padding: 10px;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }}
@@ -102,15 +107,19 @@ st.markdown("""
     box-shadow: 0 8px 20px rgba(0,0,0,0.5);
 }}
 .kpi-label {{
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 500;
     color: #cccccc;
-    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
 }}
 .kpi-value {{
-    font-size: 30px;
+    font-size: 28px;
     font-weight: 700;
     color: #ffffff;
+    margin-top: 6px;
 }}
 @media (max-width: 768px) {{
     .kpi-item {{
@@ -153,7 +162,6 @@ st.markdown("""
     likes=f"{total_likes:,}",
     impressions=f"{total_impressions:,}"
 ), unsafe_allow_html=True)
-
 
 # Step 7: SQL Summary Table (Daily Summary)
 try:
