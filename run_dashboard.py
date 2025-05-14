@@ -227,40 +227,48 @@ fig_impressions = go.Figure()
 # Attach post content as text (used in hover)
 fig_impressions = go.Figure()
 
-# Use post content in unified hover — only for first trace
-hover_texts = weekly_df['Content']
+# Trace 0: Invisible "Post" trace to show content in tooltip
+fig_impressions.add_trace(go.Scatter(
+    x=weekly_df['Created_Time'],
+    y=[None] * len(weekly_df),  # no line, just tooltip
+    mode='markers',
+    marker=dict(opacity=0),
+    name='Post',
+    text=weekly_df['Content'],
+    hovertemplate='<b>Post:</b> %{text}<extra></extra>'
+))
 
+# Trace 1: Impressions
 fig_impressions.add_trace(go.Scatter(
     x=weekly_df['Created_Time'],
     y=weekly_df['Total_Impressions'],
     mode='lines+markers',
     name='Total Impressions',
     line=dict(color='deepskyblue'),
-    text=hover_texts,
-    hovertemplate='<b>Impressions:</b> %{y}',
-    showlegend=True
+    hovertemplate='<b>Impressions:</b> %{y}<extra></extra>'
 ))
 
+# Trace 2: Reach
 fig_impressions.add_trace(go.Scatter(
     x=weekly_df['Created_Time'],
     y=weekly_df['Total_Reach'],
     mode='lines+markers',
     name='Total Reach',
     line=dict(color='orange'),
-    hovertemplate='<b>Reach:</b> %{y}',
-    showlegend=True
+    hovertemplate='<b>Reach:</b> %{y}<extra></extra>'
 ))
 
 fig_impressions.update_layout(
     title='📈 Total Impressions vs Reach (Hover shows both)',
     xaxis_title='Created Time',
     yaxis_title='Value',
-    hovermode='x <b>Post:</b> %{text}<br> unified',
+    hovermode='x unified',
     title_font=dict(size=20, color='#FFFFFF'),
     font=dict(color='#CCCCCC'),
     plot_bgcolor='rgba(0,0,0,0)',
     paper_bgcolor='rgba(0,0,0,0)',
 )
+
 st.plotly_chart(fig_impressions, use_container_width=True)
 
 
