@@ -145,22 +145,6 @@ st.markdown("""
     impressions=f"{total_impressions:,}"
 ), unsafe_allow_html=True)
 
-
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.markdown(metric_style.format(label="🖱️ Total Clicks", value=f"{total_clicks:,}"), unsafe_allow_html=True)
-with col2:
-    st.markdown(metric_style.format(label="👍 Total Reactions", value=f"{total_reactions:,}"), unsafe_allow_html=True)
-with col3:
-    st.markdown(metric_style.format(label="🌍 Total Reach", value=f"{total_reach:,}"), unsafe_allow_html=True)
-with col1:
-    st.markdown(metric_style.format(label="❤️ Love Reactions", value=f"{total_loves:,}"), unsafe_allow_html=True)
-with col2:
-    st.markdown(metric_style.format(label="👍 Like Reactions", value=f"{total_likes:,}"), unsafe_allow_html=True)
-with col3:
-    st.markdown(metric_style.format(label="👁️ Impressions", value=f"{total_impressions:,}"), unsafe_allow_html=True)
-
-
 # Step 7: SQL Summary Table (Daily Summary)
 try:
     duckdb.register("weekly_df", weekly_df)
