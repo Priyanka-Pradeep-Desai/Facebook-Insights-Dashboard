@@ -240,8 +240,7 @@ fig_impressions.add_trace(go.Scatter(
     mode='lines+markers',
     name='Total Reach',
     line=dict(color='orange'),
-    hovertemplate='Reach: %{y}<extra></extra>',
-    text=weekly_df['Content']
+    hovertemplate='Reach: %{y}<extra></extra>'
 ))
 
 fig_impressions.update_layout(
