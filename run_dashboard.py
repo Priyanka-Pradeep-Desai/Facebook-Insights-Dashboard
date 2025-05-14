@@ -56,13 +56,13 @@ if weekly_df.empty:
 
 # Step 5: Dashboard Title
 week_range = f"{previous_sunday.date()} to {last_saturday.date()}"
-st.markdown("""
+# Step 5: Dark mode-friendly dashboard title
+st.markdown(f"""
     <div style='text-align: center;'>
-        <h2 style='margin-bottom: 0.2em;'>📊 Facebook Weekly Insights Dashboard</h2>
-        <p style='color: gray; font-size: 1.1em; margin-top: 0;'>Reporting Period: <b style='color: black;'>{}</b></p>
+        <h2 style='margin-bottom: 0; color: #FFFFFF;'>📊 Facebook Weekly Insights Dashboard</h2>
+        <p style='font-size: 17px; color: #AAAAAA; margin-top: 4px;'>Week Range: <strong style='color: #FFFFFF;'>{week_range}</strong></p>
     </div>
-""".format(week_range), unsafe_allow_html=True)
-
+""", unsafe_allow_html=True)
 
 # Step 6: KPI Metrics
 total_clicks = int(weekly_df['Post_Clicks'].sum())
