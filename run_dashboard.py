@@ -73,24 +73,78 @@ total_loves = int(weekly_df['Total_Love_Reactions'].sum())
 total_impressions = int(weekly_df['Total_Impressions'].sum())
 
 # Step 6: Styled KPI Metrics in dark mode-friendly cards
-metric_style = """
-    <div style="
-        background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(8px);
-        border-radius: 16px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-        padding: 25px 15px;
-        text-align: center;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    " 
-    onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 10px 35px rgba(0, 0, 0, 0.5)'"
-    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 30px rgba(0, 0, 0, 0.3)'"
-    >
-        <div style="font-size: 15px; color: #cccccc; font-weight: 500; margin-bottom: 6px;">{label}</div>
-        <div style="font-size: 26px; font-weight: 700; color: #ffffff;">{value}</div>
+# Step 6: Unified KPI strip layout with larger fonts and cohesive style
+st.markdown("""
+<style>
+.kpi-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    padding: 30px 10px;
+    margin: 25px 0;
+}
+.kpi-item {
+    flex: 1 1 30%;
+    margin: 15px;
+    text-align: center;
+}
+.kpi-label {
+    font-size: 18px;
+    font-weight: 500;
+    color: #cccccc;
+}
+.kpi-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-top: 6px;
+}
+@media (max-width: 768px) {
+    .kpi-item {
+        flex: 1 1 100%;
+    }
+}
+</style>
+
+<div class="kpi-bar">
+    <div class="kpi-item">
+        <div class="kpi-label">🖱️ Total Clicks</div>
+        <div class="kpi-value">{clicks}</div>
     </div>
-"""
+    <div class="kpi-item">
+        <div class="kpi-label">👍 Total Reactions</div>
+        <div class="kpi-value">{reactions}</div>
+    </div>
+    <div class="kpi-item">
+        <div class="kpi-label">🌍 Total Reach</div>
+        <div class="kpi-value">{reach}</div>
+    </div>
+    <div class="kpi-item">
+        <div class="kpi-label">❤️ Love Reactions</div>
+        <div class="kpi-value">{loves}</div>
+    </div>
+    <div class="kpi-item">
+        <div class="kpi-label">👍 Like Reactions</div>
+        <div class="kpi-value">{likes}</div>
+    </div>
+    <div class="kpi-item">
+        <div class="kpi-label">👁️ Impressions</div>
+        <div class="kpi-value">{impressions}</div>
+    </div>
+</div>
+""".format(
+    clicks=f"{total_clicks:,}",
+    reactions=f"{total_reactions:,}",
+    reach=f"{total_reach:,}",
+    loves=f"{total_loves:,}",
+    likes=f"{total_likes:,}",
+    impressions=f"{total_impressions:,}"
+), unsafe_allow_html=True)
+
 
 col1, col2, col3 = st.columns(3)
 with col1:
