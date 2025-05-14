@@ -12,6 +12,7 @@ from email.mime.multipart import MIMEMultipart
 from oauth2client.service_account import ServiceAccountCredentials
 import json
 from pathlib import Path
+import numpy as np
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -218,7 +219,6 @@ fig_reactions.update_layout(
     yaxis=dict(title='Count', gridcolor='rgba(255,255,255,0.05)'),
     legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1)
 )
-
 st.plotly_chart(fig_reactions, use_container_width=True)
 
 # Chart 2: Total Impressions vs Reach (show both even if same)
@@ -227,16 +227,18 @@ fig_impressions = go.Figure()
 # Attach post content as text (used in hover)
 fig_impressions = go.Figure()
 
-# Trace 0: Invisible "Post" trace to show content in tooltip
 fig_impressions.add_trace(go.Scatter(
     x=weekly_df['Created_Time'],
-    y=[None] * len(weekly_df),  # no line, just tooltip
+    y=[np.nan] * len(weekly_df),  # use NaN instead of None
     mode='markers',
-    marker=dict(opacity=0),
-    name='Post',
+    name='',
     text=weekly_df['Content'],
-    hovertemplate='<b>Post:</b> %{text}<extra></extra>'
+    hovertemplate='<b>Post:</b> %{text}<extra></extra>',
+    marker=dict(size=0.1, opacity=0.001, color='rgba(0,0,0,0)'),
+    showlegend=False,
+    hoverlabel=dict(namelength=0)
 ))
+
 
 # Trace 1: Impressions
 fig_impressions.add_trace(go.Scatter(
@@ -268,7 +270,6 @@ fig_impressions.update_layout(
     plot_bgcolor='rgba(0,0,0,0)',
     paper_bgcolor='rgba(0,0,0,0)',
 )
-
 st.plotly_chart(fig_impressions, use_container_width=True)
 
 
