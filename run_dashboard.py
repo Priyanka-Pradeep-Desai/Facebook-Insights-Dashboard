@@ -204,7 +204,8 @@ fig_reactions = px.bar(
 fig_reactions.update_traces(
     marker_line_width=1.5,
     marker_line_color='rgba(255,255,255,0.2)',
-    hovertemplate='%{x}<br>%{legendgroup}: %{y:,}<extra></extra>',
+    hovertemplate='%{x}<br>%{fullData.name}: %{y}<extra></extra>',
+
 )
 
 fig_reactions.update_layout(
