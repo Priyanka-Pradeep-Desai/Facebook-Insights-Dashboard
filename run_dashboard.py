@@ -237,7 +237,7 @@ fig_impressions.add_trace(go.Scatter(
     name='Total Impressions',
     line=dict(color='deepskyblue'),
     text=hover_texts,
-    hovertemplate='<b>Post:</b> %{text}<br><b>Impressions:</b> %{y}',
+    hovertemplate='<b>Impressions:</b> %{y}',
     showlegend=True
 ))
 
@@ -255,7 +255,7 @@ fig_impressions.update_layout(
     title='📈 Total Impressions vs Reach (Hover shows both)',
     xaxis_title='Created Time',
     yaxis_title='Value',
-    hovermode='x unified',
+    hovermode='x <b>Post:</b> %{text}<br> unified',
     title_font=dict(size=20, color='#FFFFFF'),
     font=dict(color='#CCCCCC'),
     plot_bgcolor='rgba(0,0,0,0)',
