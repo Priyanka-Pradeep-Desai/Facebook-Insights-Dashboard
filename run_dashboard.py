@@ -122,27 +122,27 @@ st.markdown("""
 <div class="kpi-bar">
     <div class="kpi-item">
         <div class="kpi-label">🖱️ Total Clicks</div>
-        <div class="kpi-value">{total_clicks:,}</div>
+        <div class="kpi-value">{clicks}</div>
     </div>
     <div class="kpi-item">
         <div class="kpi-label">👍 Total Reactions</div>
-        <div class="kpi-value">{total_reactions:,}</div>
+        <div class="kpi-value">{reactions}</div>
     </div>
     <div class="kpi-item">
         <div class="kpi-label">🌍 Total Reach</div>
-        <div class="kpi-value">{total_reach:,}</div>
+        <div class="kpi-value">{reach}</div>
     </div>
     <div class="kpi-item">
         <div class="kpi-label">❤️ Love Reactions</div>
-        <div class="kpi-value">{total_loves:,}</div>
+        <div class="kpi-value">{loves}</div>
     </div>
     <div class="kpi-item">
         <div class="kpi-label">👍 Like Reactions</div>
-        <div class="kpi-value">{total_likes:,}</div>
+        <div class="kpi-value">{likes}</div>
     </div>
     <div class="kpi-item">
         <div class="kpi-label">👁️ Impressions</div>
-        <div class="kpi-value">{total_impressions:,}</div>
+        <div class="kpi-value">{impressions}</div>
     </div>
 </div>
 """.format(
@@ -153,6 +153,7 @@ st.markdown("""
     likes=f"{total_likes:,}",
     impressions=f"{total_impressions:,}"
 ), unsafe_allow_html=True)
+
 
 # Step 7: SQL Summary Table (Daily Summary)
 try:
