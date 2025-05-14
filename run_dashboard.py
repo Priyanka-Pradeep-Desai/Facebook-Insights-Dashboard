@@ -174,37 +174,37 @@ link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactio
 link_table['Permanent_Link'] = link_table['Permanent_Link'].apply(lambda url: f'<a href="{url}" target="_blank">View Post</a>')
 st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
 
-# Set path to the timestamp file
-file_path = os.path.join(os.path.dirname(__file__), "last_email_sent.txt")
+# Use Google Sheet instead of local file for timestamp tracking
+TIMESTAMP_SHEET_URL = "https://docs.google.com/spreadsheets/d/1PWMPIPELb_wOKZ0Oqmh0YppQPt_pvUjJaXQn9tp4G-o"
+TIMESTAMP_TAB_NAME = "Sheet1"  # or rename if needed
+timestamp_sheet = client.open_by_url(TIMESTAMP_SHEET_URL).worksheet(TIMESTAMP_TAB_NAME)
 
-def should_send_email_local(file_path, days_interval=3):
+def should_send_email_gsheet(days_interval=4):
     try:
-        path = Path(file_path)
+        last_sent_str = timestamp_sheet.acell('A1').value
         now = pd.Timestamp.now()
 
-        if path.exists():
-            last_sent_str = path.read_text().strip()
-            if last_sent_str:
-                last_sent = pd.to_datetime(last_sent_str)
-                diff_days = (now - last_sent).days
-                if diff_days < days_interval:
-                    st.info(f"⏱️ Last email was sent {diff_days} days ago. Email will be sent after {days_interval - diff_days} more day(s).")
-                    return False
+        if last_sent_str:
+            last_sent = pd.to_datetime(last_sent_str)
+            diff_days = (now - last_sent).days
+            if diff_days < days_interval:
+                st.info(f"⏱️ Last email was sent {diff_days} days ago. Email will be sent after {days_interval - diff_days} more day(s).")
+                return False
 
-        # ✅ More than 3 days passed, update the file
-        path.write_text(now.isoformat())
+        # ✅ More than 4 days passed or cell was empty
+        timestamp_sheet.update_acell('A1', now.isoformat())
         return True
 
     except Exception as e:
-        st.warning(f"⚠️ Error checking or updating the timestamp file: {e}")
+        st.warning(f"⚠️ Error accessing timestamp sheet: {e}")
         return False
     
 # Step 8: Email Automation (every 3 days using session state)
-if should_send_email_local(file_path):
+if should_send_email_gsheet():
     try:
         sender_email = st.secrets["GMAIL_USER"]
         password = st.secrets["GMAIL_PASS"]
-        receiver_emails = ["priyankadesai1999@gmail.com", "tom.basey@gmail.com"]
+        receiver_emails = ["priyankadesai1999@gmail.com", "priyankapradeepdesai@gmail.com"]
 
         message = MIMEMultipart("alternative")
         message["Subject"] = "📊 Facebook Dashboard Link"
