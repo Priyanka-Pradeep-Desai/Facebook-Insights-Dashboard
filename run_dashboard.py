@@ -72,13 +72,35 @@ total_likes = int(weekly_df['Total_Like_Reactions'].sum())
 total_loves = int(weekly_df['Total_Love_Reactions'].sum())
 total_impressions = int(weekly_df['Total_Impressions'].sum())
 
+# Step 6: Styled KPI Metrics in dark mode-friendly cards
+metric_style = """
+    <div style="
+        background-color: #1e1e1e;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        text-align: center;
+        margin-bottom: 20px;
+    ">
+        <div style="font-size: 16px; color: #AAAAAA;">{label}</div>
+        <div style="font-size: 22px; font-weight: bold; color: #FFFFFF;">{value}</div>
+    </div>
+"""
+
 col1, col2, col3 = st.columns(3)
-col1.metric("🖱️ Total Clicks", f"{total_clicks:,}")
-col2.metric("👍 Total Reactions", f"{total_reactions:,}")
-col3.metric("🌍 Total Reach", f"{total_reach:,}")
-col1.metric("❤️ Love Reactions", f"{total_loves:,}")
-col2.metric("👍 Like Reactions", f"{total_likes:,}")
-col3.metric("👁️ Impressions", f"{total_impressions:,}")
+with col1:
+    st.markdown(metric_style.format(label="🖱️ Total Clicks", value=f"{total_clicks:,}"), unsafe_allow_html=True)
+with col2:
+    st.markdown(metric_style.format(label="👍 Total Reactions", value=f"{total_reactions:,}"), unsafe_allow_html=True)
+with col3:
+    st.markdown(metric_style.format(label="🌍 Total Reach", value=f"{total_reach:,}"), unsafe_allow_html=True)
+with col1:
+    st.markdown(metric_style.format(label="❤️ Love Reactions", value=f"{total_loves:,}"), unsafe_allow_html=True)
+with col2:
+    st.markdown(metric_style.format(label="👍 Like Reactions", value=f"{total_likes:,}"), unsafe_allow_html=True)
+with col3:
+    st.markdown(metric_style.format(label="👁️ Impressions", value=f"{total_impressions:,}"), unsafe_allow_html=True)
+
 
 # Step 7: SQL Summary Table (Daily Summary)
 try:
