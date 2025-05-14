@@ -224,32 +224,42 @@ st.plotly_chart(fig_reactions, use_container_width=True)
 # Chart 2: Total Impressions vs Reach (show both even if same)
 fig_impressions = go.Figure()
 
+# Attach post content as text (used in hover)
+hover_texts = weekly_df['Content']
+
+# Add Impressions trace
 fig_impressions.add_trace(go.Scatter(
     x=weekly_df['Created_Time'],
     y=weekly_df['Total_Impressions'],
     mode='lines+markers',
     name='Total Impressions',
     line=dict(color='deepskyblue'),
-    hovertemplate='Post: %{text}<extra></extra><br>Impressions: %{y}',
-    text=weekly_df['Content']
+    text=hover_texts,
+    hovertemplate='%{x|%b %d, %Y}<br><b>Post:</b> %{text}<br><b>Impressions:</b> %{y}<extra></extra>'
 ))
 
+# Add Reach trace (no separate text, but uses same hovermode)
 fig_impressions.add_trace(go.Scatter(
     x=weekly_df['Created_Time'],
     y=weekly_df['Total_Reach'],
     mode='lines+markers',
     name='Total Reach',
     line=dict(color='orange'),
-    hovertemplate='Reach: %{y}<extra></extra>'
+    text=hover_texts,
+    hovertemplate='<b>Reach:</b> %{y}<extra></extra>'
 ))
 
+# Layout
 fig_impressions.update_layout(
     title='📈 Total Impressions vs Reach (Hover shows both)',
     xaxis_title='Created Time',
     yaxis_title='Value',
-    hovermode='x unified'
+    hovermode='x unified',
+    title_font=dict(size=20, color='#FFFFFF'),
+    font=dict(color='#CCCCCC'),
+    plot_bgcolor='rgba(0,0,0,0)',
+    paper_bgcolor='rgba(0,0,0,0)',
 )
-
 st.plotly_chart(fig_impressions, use_container_width=True)
 
 
