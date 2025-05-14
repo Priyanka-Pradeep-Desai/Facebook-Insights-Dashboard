@@ -188,7 +188,8 @@ except Exception as e:
 # Chart 1: Daily Reaction Types Breakdown
 import plotly.express as px
 
-custom_colors = ['#4DB6AC', '#F06292']  # Teal and pink (looks good in dark mode)
+custom_colors = ['#00BCD4', '#FFB74D']  # Cyan & amber
+ # Teal and pink (looks good in dark mode)
 
 fig_reactions = px.bar(
     summary_df,
