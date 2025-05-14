@@ -230,7 +230,7 @@ fig_impressions.add_trace(go.Scatter(
     mode='lines+markers',
     name='Total Impressions',
     line=dict(color='deepskyblue'),
-    hovertemplate='Impressions: %{y}<br>Post: %{text}<extra></extra>',
+    hovertemplate='Post: %{text}<extra></extra><br>Impressions: %{y}',
     text=weekly_df['Content']
 ))
 
@@ -240,7 +240,7 @@ fig_impressions.add_trace(go.Scatter(
     mode='lines+markers',
     name='Total Reach',
     line=dict(color='orange'),
-    hovertemplate='Reach: %{y}<br>Post: %{text}<extra></extra>',
+    hovertemplate='Reach: %{y}<extra></extra>',
     text=weekly_df['Content']
 ))
 
