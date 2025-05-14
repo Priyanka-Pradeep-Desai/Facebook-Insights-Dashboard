@@ -229,7 +229,7 @@ fig_impressions = go.Figure()
 
 fig_impressions.add_trace(go.Scatter(
     x=weekly_df['Created_Time'],
-    y=[np.nan] * len(weekly_df),  # use NaN instead of None
+    y=[0.001] * len(weekly_df),  # use NaN instead of None
     mode='markers',
     name='',
     text=weekly_df['Content'],
