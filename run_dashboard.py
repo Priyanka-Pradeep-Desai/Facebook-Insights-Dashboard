@@ -78,33 +78,43 @@ st.markdown("""
 .kpi-bar {{
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-around;
+    justify-content: center;
     background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 20px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-    padding: 30px 10px;
+    padding: 40px 20px;
     margin: 25px 0;
+    gap: 20px;
 }}
 .kpi-item {{
-    flex: 1 1 30%;
-    margin: 15px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 20px 25px;
+    width: 160px;
     text-align: center;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}}
+.kpi-item:hover {{
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
 }}
 .kpi-label {{
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 500;
     color: #cccccc;
+    margin-bottom: 6px;
 }}
 .kpi-value {{
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 700;
     color: #ffffff;
-    margin-top: 6px;
 }}
 @media (max-width: 768px) {{
     .kpi-item {{
-        flex: 1 1 100%;
+        width: 100%;
     }}
 }}
 </style>
@@ -112,27 +122,27 @@ st.markdown("""
 <div class="kpi-bar">
     <div class="kpi-item">
         <div class="kpi-label">🖱️ Total Clicks</div>
-        <div class="kpi-value">{clicks}</div>
+        <div class="kpi-value">{total_clicks:,}</div>
     </div>
     <div class="kpi-item">
         <div class="kpi-label">👍 Total Reactions</div>
-        <div class="kpi-value">{reactions}</div>
+        <div class="kpi-value">{total_reactions:,}</div>
     </div>
     <div class="kpi-item">
         <div class="kpi-label">🌍 Total Reach</div>
-        <div class="kpi-value">{reach}</div>
+        <div class="kpi-value">{total_reach:,}</div>
     </div>
     <div class="kpi-item">
         <div class="kpi-label">❤️ Love Reactions</div>
-        <div class="kpi-value">{loves}</div>
+        <div class="kpi-value">{total_loves:,}</div>
     </div>
     <div class="kpi-item">
         <div class="kpi-label">👍 Like Reactions</div>
-        <div class="kpi-value">{likes}</div>
+        <div class="kpi-value">{total_likes:,}</div>
     </div>
     <div class="kpi-item">
         <div class="kpi-label">👁️ Impressions</div>
-        <div class="kpi-value">{impressions}</div>
+        <div class="kpi-value">{total_impressions:,}</div>
     </div>
 </div>
 """.format(
