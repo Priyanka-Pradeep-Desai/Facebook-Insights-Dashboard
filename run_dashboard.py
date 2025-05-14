@@ -191,6 +191,19 @@ import plotly.express as px
 
 custom_colors = ['#00BCD4', '#FFB74D']  # Cyan & amber
  # Teal and pink (looks good in dark mode)
+# Add post content per day to summary_df
+weekly_df['Created_Date'] = weekly_df['Created_Time'].dt.date
+contents_by_day = (
+    weekly_df.groupby('Created_Date')['Content']
+    .apply(lambda x: '<br>'.join(x))
+    .reset_index()
+    .rename(columns={'Content': 'Post_Contents'})
+)
+
+summary_df['Created_Date'] = pd.to_datetime(summary_df['Created_Date']).dt.date
+summary_df = summary_df.merge(contents_by_day, on='Created_Date', how='left')
+
+custom_colors = ['#00BCD4', '#FFB74D']  # Cyan & amber
 
 fig_reactions = px.bar(
     summary_df,
@@ -202,11 +215,12 @@ fig_reactions = px.bar(
     color_discrete_sequence=custom_colors,
 )
 
+# Add post content as hover data
 fig_reactions.update_traces(
+    customdata=summary_df[['Post_Contents']].values,
     marker_line_width=1.5,
     marker_line_color='rgba(255,255,255,0.2)',
-    hovertemplate='%{x}<br>%{fullData.name}: %{y}<extra></extra>',
-
+    hovertemplate='%{x}<br><b>%{fullData.name}:</b> %{y}<br><b>Posts:</b><br>%{customdata[0]}<extra></extra>',
 )
 
 fig_reactions.update_layout(
@@ -220,6 +234,7 @@ fig_reactions.update_layout(
     legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1)
 )
 st.plotly_chart(fig_reactions, use_container_width=True)
+
 
 # Chart 2: Total Impressions vs Reach (show both even if same)
 fig_impressions = go.Figure()
