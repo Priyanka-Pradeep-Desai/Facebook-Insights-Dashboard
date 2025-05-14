@@ -186,13 +186,37 @@ except Exception as e:
     st.stop()
 
 # Chart 1: Daily Reaction Types Breakdown
+import plotly.express as px
+
+custom_colors = ['#4DB6AC', '#F06292']  # Teal and pink (looks good in dark mode)
+
 fig_reactions = px.bar(
     summary_df,
     x='Created_Date',
     y=['Total_Likes', 'Total_Loves'],
     title="💬 Daily Reaction Type Breakdown",
-    labels={"value": "Count", "variable": "Reaction Type"},
+    labels={"value": "Count", "variable": "Reaction Type", "Created_Date": "Date"},
+    barmode='group',
+    color_discrete_sequence=custom_colors,
 )
+
+fig_reactions.update_traces(
+    marker_line_width=1.5,
+    marker_line_color='rgba(255,255,255,0.2)',
+    hovertemplate='%{x}<br>%{legendgroup}: %{y:,}<extra></extra>',
+)
+
+fig_reactions.update_layout(
+    plot_bgcolor='rgba(0,0,0,0)',
+    paper_bgcolor='rgba(0,0,0,0)',
+    title_font=dict(size=20, color='#FFFFFF'),
+    font=dict(color='#CCCCCC'),
+    legend_title_text='Reaction Type',
+    xaxis=dict(title='Date', showgrid=False, tickangle=0),
+    yaxis=dict(title='Count', gridcolor='rgba(255,255,255,0.05)'),
+    legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1)
+)
+
 st.plotly_chart(fig_reactions, use_container_width=True)
 
 # Chart 2: Total Impressions vs Reach (show both even if same)
