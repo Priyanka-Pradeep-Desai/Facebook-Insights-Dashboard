@@ -82,20 +82,15 @@ metric_style = """
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
         padding: 25px 15px;
         text-align: center;
-        transition: transform 0.2s ease;
-    ">
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    " 
+    onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 10px 35px rgba(0, 0, 0, 0.5)'"
+    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 30px rgba(0, 0, 0, 0.3)'"
+    >
         <div style="font-size: 15px; color: #cccccc; font-weight: 500; margin-bottom: 6px;">{label}</div>
         <div style="font-size: 26px; font-weight: 700; color: #ffffff;">{value}</div>
     </div>
 """
-st.markdown("""
-    <style>
-    div[data-testid="column"] > div:hover {
-        transform: scale(1.02);
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 
 col1, col2, col3 = st.columns(3)
 with col1:
