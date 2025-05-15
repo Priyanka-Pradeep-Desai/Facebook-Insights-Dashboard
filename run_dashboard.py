@@ -350,33 +350,46 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # Chart 4: Love vs Like Reactions - Nested Donut Chart with Extra KPIs
-# Updated Chart 4: Donut Chart for Reactions Only (Like vs Love)
-reaction_totals = pd.DataFrame({
-    'Reaction Type': ['Like Reactions', 'Love Reactions'],
-    'Count': [total_likes, total_loves]
+# Filter posts that have Likes or Loves
+like_posts = weekly_df[weekly_df['Total_Like_Reactions'] > 0]['Content']
+love_posts = weekly_df[weekly_df['Total_Love_Reactions'] > 0]['Content']
+
+reaction_data = pd.DataFrame({
+    'Reaction Type': ['Like', 'Love'],
+    'Count': [total_likes, total_loves],
+    'Posts': [
+        '<br><br>'.join(like_posts.head(5)),  # limit for readability
+        '<br><br>'.join(love_posts.head(5))
+    ]
 })
 
 fig_reactions_donut = px.pie(
-    reaction_totals,
+    reaction_data,
     names='Reaction Type',
     values='Count',
-    title='❤️ Emotional Reaction Breakdown',
     hole=0.5,
     color='Reaction Type',
     color_discrete_map={
-        'Like Reactions': '#1877F2',
-        'Love Reactions': '#D81B60'
+        'Like': '#1877F2',
+        'Love': '#D81B60'
     }
 )
 
+# Custom hover to show reaction type, count, and associated post content
+fig_reactions_donut.update_traces(
+    customdata=reaction_data[['Posts']],
+    hovertemplate="<b>%{label}</b><br>Reactions: %{value}<br><br><b>Sample Posts:</b><br>%{customdata[0]}<extra></extra>"
+)
+
+# Chart layout
 fig_reactions_donut.update_layout(
+    title='❤️ Emotional Reaction Breakdown',
     title_font=dict(size=20, color='#FFFFFF'),
     font=dict(color='#CCCCCC'),
     paper_bgcolor='rgba(30,30,30,1)',
     plot_bgcolor='rgba(20,20,20,1)',
     margin=dict(t=80, b=40, l=60, r=60)
 )
-
 st.plotly_chart(fig_reactions_donut, use_container_width=True)
 
 # KPIs: Reaction Rate and Resonance Depth
