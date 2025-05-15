@@ -306,7 +306,7 @@ fig_impressions.add_trace(go.Scatter(
 
 # Step 7: Layout styling
 fig_impressions.update_layout(
-    title='📈 Total Impressions vs Reach (Hover shows both)',
+    title='📈 Total Impressions vs Reach',
     xaxis_title='Date',
     yaxis_title='Count',
     hovermode='x unified',
