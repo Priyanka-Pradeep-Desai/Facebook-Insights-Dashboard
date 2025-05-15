@@ -435,17 +435,23 @@ fig_donut = go.Figure(go.Sunburst(
     parents=[""] * len(inner_labels) + outer_parents,
     values=inner_values + outer_values,
     branchvalues="total",
-    marker=dict(colors=['#29B6F6', '#FF7043', '#4FC3F7', '#81C784', '#F06292']),
-    hovertemplate='<b>%{label}</b><br>Engagement: %{value}<extra></extra>'
+    marker=dict(
+        colors=['#00B0FF', '#FF7043', '#4DD0E1', '#66BB6A', '#F06292'],
+        line=dict(color="rgba(255,255,255,0.5)", width=1.5)
+    ),
+    insidetextorientation='radial',
+    hovertemplate='<b>%{label}</b><br>Value: %{value}<extra></extra>',
+    maxdepth=2
 ))
 
 # Step 3: Style the layout
 fig_donut.update_layout(
-    margin=dict(t=50, l=0, r=0, b=0),
-    paper_bgcolor='rgba(30,30,30,1)',
+    margin=dict(t=30, l=20, r=20, b=20),
+    paper_bgcolor='rgba(20,20,20,1)',
     plot_bgcolor='rgba(20,20,20,1)',
-    font=dict(color='#CCCCCC'),
-    height=600
+    font=dict(color='#E0E0E0', family='Segoe UI'),
+    sunburstcolorway=['#00B0FF', '#FF7043', '#4DD0E1', '#66BB6A', '#F06292'],
+    uniformtext=dict(minsize=12, mode='hide')
 )
 
 # Step 4: Display the chart
