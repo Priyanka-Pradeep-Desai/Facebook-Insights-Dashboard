@@ -292,16 +292,37 @@ fig_impressions.update_layout(
 )
 st.plotly_chart(fig_impressions, use_container_width=True)
 
-# Chart 3: Top 10 Posts by Clicks
 top_posts = weekly_df.sort_values(by='Post_Clicks', ascending=False).head(10)
+
 fig3 = px.bar(
     top_posts,
-    x='Content',
-    y='Post_Clicks',
+    x='Post_Clicks',
+    y='Content',
+    orientation='h',
     title='🔥 Top 10 Posts by Clicks',
-    hover_data=['Permanent_Link']
+    hover_data={'Content': True, 'Post_Clicks': True, 'Permanent_Link': True},
+    color_discrete_sequence=['#7E57C2']
 )
+
+fig3.update_layout(
+    plot_bgcolor='rgba(20,20,20,1)',
+    paper_bgcolor='rgba(30,30,30,1)',
+    title_font=dict(size=20, color='#FFFFFF'),
+    font=dict(color='#CCCCCC'),
+    margin=dict(l=100, r=40, t=80, b=60),
+    xaxis_title='Clicks',
+    yaxis_title='Post Content',
+    yaxis=dict(tickfont=dict(size=12)),
+)
+
+fig3.update_traces(
+    marker_line_width=1,
+    marker_line_color='rgba(255,255,255,0.1)',
+    hovertemplate='<b>Clicks:</b> %{x}<br><b>Post:</b> %{y}<br><b>🔗 Link:</b> %{customdata[2]}<extra></extra>'
+)
+
 st.plotly_chart(fig3, use_container_width=True)
+
 
 # Chart 4: Love vs Like Reactions - Pie Chart
 reaction_totals = pd.DataFrame({
