@@ -399,37 +399,37 @@ resonance_depth = total_loves / (total_likes + total_loves) if (total_likes + to
 # Styled KPI Cards
 st.markdown("""
 <style>
-.extra-kpi-bar {
+.extra-kpi-bar {{
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 20px;
     margin-top: 20px;
-}
-.extra-kpi {
+}}
+.extra-kpi {{
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 16px;
     padding: 20px 30px;
     box-shadow: inset 0 0 12px rgba(0,0,0,0.2);
     text-align: center;
-    flex: 1 1 240px;  /* Responsive */
+    flex: 1 1 240px;
     max-width: 300px;
     transition: transform 0.3s ease;
-}
-.extra-kpi:hover {
+}}
+.extra-kpi:hover {{
     transform: scale(1.05);
-}
-.extra-kpi-label {
+}}
+.extra-kpi-label {{
     font-size: 17px;
     color: #cccccc;
-}
-.extra-kpi-value {
+}}
+.extra-kpi-value {{
     font-size: 28px;
     font-weight: bold;
     color: #ffffff;
     margin-top: 8px;
-}
+}}
 </style>
 
 <div class="extra-kpi-bar">
