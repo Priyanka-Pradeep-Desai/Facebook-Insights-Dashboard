@@ -464,15 +464,6 @@ for label in outer_labels:
                 outer_colors.append(love_shades[level])
                 break
 
-
-for label in outer_labels:
-    if 'High' in label:
-        outer_colors.append(color_map['High'])
-    elif 'Moderate' in label:
-        outer_colors.append(color_map['Moderate'])
-    else:
-        outer_colors.append(color_map['Low'])
-
 # Step 5: Build the concentric donut chart
 fig = go.Figure()
 
