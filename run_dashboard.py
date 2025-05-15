@@ -450,11 +450,32 @@ st.markdown("""
 # Chart 5: Best Day to Post (by Impressions + Reach)
 summary_df['Engagement_Score'] = summary_df['Total_Impressions'] + summary_df['Total_Reach']
 best_day = summary_df.sort_values(by='Engagement_Score', ascending=False).iloc[0]['Day_Name']
-st.info(f"📆 Best day to post this week based on Impressions + Reach: **{best_day}**")
+st.markdown(f"""
+<style>
+.best-day-box {{
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+    padding: 16px 24px;
+    color: #FFFFFF;
+    font-size: 16px;
+    margin-top: 30px;
+    text-align: center;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+}}
+.best-day-box strong {{
+    color: #FFDD57;
+}}
+</style>
 
-# 🔝 Top Clicked Posts Table (Clean & Professional)
+<div class="best-day-box">
+    📆 Best day to post this week based on <i>Impressions + Reach</i>: <strong>{best_day}</strong>
+</div>
+""", unsafe_allow_html=True)
+
+
 # 🔗 Clickable Post Table – Preserves original look, polished
-st.subheader("🔗 Top Clicked Post Links")
+st.subheader("🔗 Top Links Clicked Posts")
 # Step 1: Select and sort by clicks
 link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactions', 'Permanent_Link']].copy()
 link_table = link_table.sort_values(by='Post_Clicks', ascending=False)  # <-- this line sorts it
