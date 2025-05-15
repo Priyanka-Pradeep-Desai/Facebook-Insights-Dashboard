@@ -13,7 +13,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 import json
 from pathlib import Path
 import numpy as np
-import plotly.express as px
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -293,9 +292,7 @@ fig_impressions.update_layout(
 st.plotly_chart(fig_impressions, use_container_width=True)
 
 # Chart 3: Top engaged posts
-import plotly.express as px
-
-# Step 1: Create engagement score
+# Step 1: Compute engagement and get top 10
 weekly_df['Engagement_Score'] = (
     weekly_df['Total_Impressions'] +
     weekly_df['Total_Reach'] +
@@ -303,54 +300,55 @@ weekly_df['Engagement_Score'] = (
     weekly_df['Total_Love_Reactions'] +
     weekly_df['Post_Clicks']
 )
+top_engaged = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).copy()
 
-# Step 2: Sort top 10
-top_engaged_posts = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).copy()
+# Step 2: Create Y positions like a triangle
+top_engaged = top_engaged.reset_index(drop=True)
+top_engaged['y'] = top_engaged.index[::-1]  # Highest score at top
 
-# Step 3: Create horizontal bar chart with gradient coloring
-fig_bar = px.bar(
-    top_engaged_posts.iloc[::-1],  # Reverse so highest is on top
-    x='Engagement_Score',
-    y='Content',
-    orientation='h',
-    title='🏆 Top 10 Posts by Total Engagement',
-    color='Engagement_Score',
-    color_continuous_scale='Plasma',  # Try 'Inferno', 'Viridis', 'Turbo' too
-    labels={'Content': 'Post', 'Engagement_Score': 'Engagement Score'}
+# Step 3: Use horizontal bars with decreasing width
+fig = go.Figure()
+
+for idx, row in top_engaged.iterrows():
+    fig.add_trace(go.Bar(
+        y=[row['y']],
+        x=[row['Engagement_Score']],
+        orientation='h',
+        name='',
+        text=row['Content'],
+        marker_color='#7E57C2',
+        hovertemplate=(
+            f"<b>Post:</b> {row['Content']}<br>"
+            f"👁 Impressions: {row['Total_Impressions']}<br>"
+            f"📢 Reach: {row['Total_Reach']}<br>"
+            f"👍 Likes: {row['Total_Like_Reactions']}<br>"
+            f"❤️ Loves: {row['Total_Love_Reactions']}<br>"
+            f"🖱 Clicks: {row['Post_Clicks']}<br>"
+            f"<b>Total Score:</b> {row['Engagement_Score']}<extra></extra>"
+        ),
+        width=0.6 - (idx * 0.04)  # simulate tapering
+    ))
+
+# Step 4: Invert Y-axis to show triangle top-down
+fig.update_yaxes(
+    tickvals=top_engaged['y'],
+    ticktext=top_engaged['Content'],
+    autorange='reversed'
 )
 
-# Step 4: Dark theme + styling
-fig_bar.update_layout(
+# Step 5: Layout styling
+fig.update_layout(
+    title='🔺 Top 10 Posts Ranked in Triangle Form',
     plot_bgcolor='rgba(20,20,20,1)',
     paper_bgcolor='rgba(30,30,30,1)',
     title_font=dict(size=20, color='#FFFFFF'),
     font=dict(color='#CCCCCC', size=13),
-    margin=dict(l=100, r=40, t=80, b=60),
-    coloraxis_colorbar=dict(title='Engagement')
+    xaxis_title='Engagement Score',
+    yaxis_title='Post',
+    margin=dict(l=120, r=40, t=80, b=60),
+    showlegend=False
 )
-
-# Step 5: Detailed hover breakdown
-fig_bar.update_traces(
-    customdata=top_engaged_posts.iloc[::-1][[
-        'Total_Impressions',
-        'Total_Reach',
-        'Total_Like_Reactions',
-        'Total_Love_Reactions',
-        'Post_Clicks'
-    ]],
-    hovertemplate=(
-        '<b>Post:</b> %{y}<br>'
-        '👁 Impressions: %{customdata[0]}<br>'
-        '📢 Reach: %{customdata[1]}<br>'
-        '👍 Likes: %{customdata[2]}<br>'
-        '❤️ Loves: %{customdata[3]}<br>'
-        '🖱 Clicks: %{customdata[4]}<br>'
-        '<b>Total Score:</b> %{x}<extra></extra>'
-    )
-)
-
-# Step 6: Show in Streamlit
-st.plotly_chart(fig_bar, use_container_width=True)
+st.plotly_chart(fig, use_container_width=True)
 
 # Chart 4: Love vs Like Reactions - Pie Chart
 reaction_totals = pd.DataFrame({
