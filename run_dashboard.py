@@ -293,8 +293,8 @@ fig_impressions.update_layout(
 st.plotly_chart(fig_impressions, use_container_width=True)
 
 # Chart 3: Top 10 Posts by Clicks - Sort and reverse for treemap logic
-top_posts['Post_Clicks'] = top_posts['Post_Clicks'].replace(0, 0.1)
 top_posts = weekly_df.sort_values(by='Post_Clicks', ascending=False).head(10)
+top_posts['Post_Clicks'] = top_posts['Post_Clicks'].replace(0, 0.1)
 
 fig3 = px.treemap(
     top_posts,
