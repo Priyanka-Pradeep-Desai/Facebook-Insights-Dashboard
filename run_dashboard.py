@@ -410,19 +410,6 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- Chart 4: Nested Donut – Reaction Breakdown by Engagement Quality ---
-from plotly import graph_objects as go
-
-# Calculate Like vs Love total
-like_total = weekly_df['Total_Like_Reactions'].sum()
-love_total = weekly_df['Total_Love_Reactions'].sum()
-
-# Inner ring: Like vs Love
-inner_labels = ['Like', 'Love']
-inner_values = [like_total, love_total]
-
-# Outer ring: Engagement breakdown by reaction type
-engagement_levels = ['High Engagement', 'Moderate Engagement', 'Low Engagement']
-# Ensure Engagement_Quality is defined BEFORE filtering anything
 def classify_engagement(row):
     if row['Post_Clicks'] > row['Total_Reactions']:
         return 'High Engagement'
@@ -431,80 +418,98 @@ def classify_engagement(row):
     else:
         return 'Low Engagement'
 
-if 'Engagement_Quality' not in weekly_df.columns:
-    weekly_df['Engagement_Quality'] = weekly_df.apply(classify_engagement, axis=1)
+weekly_df['Engagement_Quality'] = weekly_df.apply(classify_engagement, axis=1)
 
-# Likes breakdown
-like_breakdown = (
+# Step 2: Totals for inner ring
+like_total = weekly_df['Total_Like_Reactions'].sum()
+love_total = weekly_df['Total_Love_Reactions'].sum()
+
+inner_labels = ['Like', 'Love']
+inner_values = [like_total, love_total]
+inner_colors = ['#1877F2', '#D81B60']
+
+# Step 3: Build outer segments and filter zeros
+segments = []
+colors = []
+
+engagement_levels = ['High Engagement', 'Moderate Engagement', 'Low Engagement']
+engagement_colors = {
+    'High Engagement': '#00C49F',
+    'Moderate Engagement': '#FFBB28',
+    'Low Engagement': '#FF4C4C'
+}
+
+# Like breakdown
+like_grouped = (
     weekly_df[weekly_df['Total_Like_Reactions'] > 0]
     .groupby('Engagement_Quality')['Total_Like_Reactions']
     .sum()
     .reindex(engagement_levels, fill_value=0)
-    .values
 )
 
-# Loves breakdown
-love_breakdown = (
+for level, value in like_grouped.items():
+    if value > 0:
+        segments.append((f'Like - {level}', value))
+        colors.append(engagement_colors[level])
+
+# Love breakdown
+love_grouped = (
     weekly_df[weekly_df['Total_Love_Reactions'] > 0]
     .groupby('Engagement_Quality')['Total_Love_Reactions']
     .sum()
     .reindex(engagement_levels, fill_value=0)
-    .values
 )
 
-outer_labels = (
-    ['Like - High', 'Like - Moderate', 'Like - Low'] +
-    ['Love - High', 'Love - Moderate', 'Love - Low']
-)
+for level, value in love_grouped.items():
+    if value > 0:
+        segments.append((f'Love - {level}', value))
+        colors.append(engagement_colors[level])
 
-outer_values = list(like_breakdown) + list(love_breakdown)
+# Separate outer labels and values
+outer_labels = [label for label, _ in segments]
+outer_values = [value for _, value in segments]
 
-# Outer ring colors
-outer_colors = ['#00C49F', '#FFBB28', '#FF4C4C', '#00C49F', '#FFBB28', '#FF4C4C']
-inner_colors = ['#1877F2', '#D81B60']
+# Step 4: Create the figure
+fig = go.Figure()
 
-# Create figure with two donut charts (inner + outer)
-fig_donut = go.Figure()
-
-# Inner donut (Reaction Type)
-fig_donut.add_trace(go.Pie(
+# Inner ring
+fig.add_trace(go.Pie(
     labels=inner_labels,
     values=inner_values,
     hole=0.6,
-    direction='clockwise',
-    sort=False,
     marker=dict(colors=inner_colors),
     textinfo='label+percent',
+    direction='clockwise',
+    sort=False,
     name='Reaction Type',
     domain={'x': [0, 1], 'y': [0, 1]},
     showlegend=True
 ))
 
-# Outer donut (Engagement Quality per Reaction Type)
-fig_donut.add_trace(go.Pie(
+# Outer ring
+fig.add_trace(go.Pie(
     labels=outer_labels,
     values=outer_values,
     hole=0.4,
+    marker=dict(colors=colors),
+    textinfo='label+value',
     direction='clockwise',
     sort=False,
-    marker=dict(colors=outer_colors),
-    textinfo='label+value',
     name='Engagement Quality',
     domain={'x': [0, 1], 'y': [0, 1]},
     showlegend=False
 ))
 
-# Styling
-fig_donut.update_layout(
+# Layout & rendering
+fig.update_layout(
     title_text='🍩 Reaction Type vs Engagement Quality',
+    annotations=[dict(text='Reactions', x=0.5, y=0.5, font_size=16, showarrow=False)],
     paper_bgcolor='rgba(30,30,30,1)',
     plot_bgcolor='rgba(20,20,20,1)',
     font=dict(color='#CCCCCC'),
-    margin=dict(t=80, b=40, l=40, r=40),
-    annotations=[dict(text='Reactions', x=0.5, y=0.5, font_size=16, showarrow=False, font_color='white')]
+    margin=dict(t=80, b=40, l=40, r=40)
 )
 
-# Render in Streamlit
 st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
@@ -516,7 +521,8 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.plotly_chart(fig_donut, use_container_width=True)
+st.plotly_chart(fig, use_container_width=True)
+
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
