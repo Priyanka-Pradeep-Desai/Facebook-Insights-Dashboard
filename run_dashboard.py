@@ -229,6 +229,7 @@ fig_reactions = px.bar(
     summary_df,
     x='Created_Date',
     y=['Total_Likes', 'Total_Loves'],
+    title=' '
     labels={"value": "Count", "variable": "Reaction Type", "Created_Date": "Date"},
     barmode='group')
     
