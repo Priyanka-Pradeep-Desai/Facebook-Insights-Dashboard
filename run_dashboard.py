@@ -292,7 +292,9 @@ fig_impressions.update_layout(
 )
 st.plotly_chart(fig_impressions, use_container_width=True)
 
-# Chart 3: Top 10 Posts by Clicks
+# Chart 3: Top 10 Posts by Clicks - Sort and reverse for treemap logic
+top_posts = weekly_df.sort_values(by='Post_Clicks', ascending=False).head(10)
+
 fig3 = px.treemap(
     top_posts,
     path=[px.Constant('Top Posts'), 'Content'],
@@ -301,6 +303,20 @@ fig3 = px.treemap(
     color_discrete_sequence=['#7E57C2']
 )
 
+# Update layout for dark theme and better spacing
+fig3.update_layout(
+    plot_bgcolor='rgba(20,20,20,1)',
+    paper_bgcolor='rgba(30,30,30,1)',
+    title_font=dict(size=20, color='#FFFFFF'),
+    font=dict(color='#CCCCCC'),
+    margin=dict(l=40, r=40, t=60, b=40)
+)
+# Customize hover info
+fig3.update_traces(
+    hovertemplate='<b>Post:</b> %{label}<br><b>Clicks:</b> %{value}<extra></extra>',
+    textinfo='label+value'
+)
+st.plotly_chart(fig3, use_container_width=True)
 
 # Chart 4: Love vs Like Reactions - Pie Chart
 reaction_totals = pd.DataFrame({
