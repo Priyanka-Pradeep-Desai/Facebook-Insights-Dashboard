@@ -409,7 +409,9 @@ fig_bar.update_traces(
 # Step 6: Show in Streamlit
 st.plotly_chart(fig_bar, use_container_width=True)
 
-# Step 1: Classify engagement
+# --- Chart 4: Nested Donut – Reaction Breakdown by Engagement Quality ---
+
+# Step 1: Define engagement category logic
 def classify_engagement(row):
     if row['Post_Clicks'] > row['Total_Reactions']:
         return 'High Engagement'
@@ -420,7 +422,7 @@ def classify_engagement(row):
 
 weekly_df['Engagement_Quality'] = weekly_df.apply(classify_engagement, axis=1)
 
-# Step 2: Group like reactions by engagement quality (ensure all levels)
+# Step 2: Create all 6 combinations with fallback to 0
 engagement_levels = ['High Engagement', 'Moderate Engagement', 'Low Engagement']
 
 like_breakdown = (
@@ -444,7 +446,7 @@ love_breakdown = (
 like_breakdown.columns = ['Label', 'Value', 'Parent']
 love_breakdown.columns = ['Label', 'Value', 'Parent']
 
-# Step 3: Add Like and Love totals
+# Step 3: Like & Love totals
 total_likes = like_breakdown['Value'].sum()
 total_loves = love_breakdown['Value'].sum()
 
@@ -454,17 +456,17 @@ reaction_totals = pd.DataFrame({
     'Parent': ['All Reactions', 'All Reactions']
 })
 
-# Step 4: Add root node
+# Step 4: Root node
 root = pd.DataFrame([{
     'Label': 'All Reactions',
     'Value': total_likes + total_loves,
     'Parent': ''
 }])
 
-# Step 5: Combine into sunburst data
+# Step 5: Combine full dataset
 sunburst_df_fixed = pd.concat([root, reaction_totals, like_breakdown, love_breakdown], ignore_index=True)
 
-
+# Step 6: Chart
 fig_nested_donut = px.sunburst(
     sunburst_df_fixed,
     names='Label',
@@ -489,6 +491,7 @@ fig_nested_donut.update_layout(
     hoverlabel=dict(bgcolor='rgba(50,50,50,0.9)', font_size=13)
 )
 
+# Step 7: Render in Streamlit
 st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
@@ -501,6 +504,7 @@ st.markdown(
 )
 
 st.plotly_chart(fig_nested_donut, use_container_width=True)
+
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
