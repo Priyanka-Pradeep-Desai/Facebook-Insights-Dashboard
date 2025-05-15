@@ -409,15 +409,16 @@ fig_bar.update_traces(
 # Step 6: Show in Streamlit
 st.plotly_chart(fig_bar, use_container_width=True)
 
-# Chart 4: Nested Donut Chart - Reactions vs Engagement Type
-# Step 1: Base Reaction Data (Inner Ring)
+# Chart 4: Nested Donut Chart – Reaction Type + Engagement Quality
+
+# Step 1: Reaction totals
 reaction_data = pd.DataFrame({
-    'Level': ['Inner'] * 2,
-    'Category': ['Like', 'Love'],
-    'Count': [total_likes, total_loves],
+    'Parent': ['All Reactions', 'All Reactions'],
+    'Label': ['Like', 'Love'],
+    'Value': [total_likes, total_loves]
 })
 
-# Step 2: Engagement Quality Classification (Outer Ring)
+# Step 2: Engagement quality categorization
 def classify_engagement(row):
     if row['Post_Clicks'] > row['Total_Reactions']:
         return 'High Engagement'
@@ -426,82 +427,53 @@ def classify_engagement(row):
     else:
         return 'Low Engagement'
 
-weekly_df['Engagement_Type'] = weekly_df.apply(classify_engagement, axis=1)
-engagement_counts = weekly_df['Engagement_Type'].value_counts().reset_index()
-engagement_counts.columns = ['Category', 'Count']
-engagement_counts['Level'] = 'Outer'
+weekly_df['Engagement_Quality'] = weekly_df.apply(classify_engagement, axis=1)
+engagement_counts = weekly_df['Engagement_Quality'].value_counts().reset_index()
+engagement_counts.columns = ['Label', 'Value']
+engagement_counts['Parent'] = 'All Reactions'
 
-# Step 3: Combine for Nested Donut
-nested_data = pd.concat([reaction_data, engagement_counts], ignore_index=True)
+# Step 3: Combine into one tree
+sunburst_df = pd.concat([reaction_data, engagement_counts], ignore_index=True)
 
-# Step 4: Create Donut Chart
-fig_nested_donut = px.sunburst(
-    nested_data,
-    path=['Level', 'Category'],
-    values='Count',
-    color='Category',
+# Step 4: Create chart
+fig_nested = px.sunburst(
+    sunburst_df,
+    names='Label',
+    parents='Parent',
+    values='Value',
+    color='Label',
     color_discrete_map={
         'Like': '#1877F2',
         'Love': '#D81B60',
         'High Engagement': '#00C49F',
         'Moderate Engagement': '#FFBB28',
-        'Low Engagement': '#FF4C4C'
-    },
-    branchvalues='total'
+        'Low Engagement': '#FF4C4C',
+        'All Reactions': '#222222'
+    }
 )
 
-# Step 5: Layout styling
-fig_nested_donut.update_layout(
+# Step 5: Layout
+fig_nested.update_layout(
     margin=dict(t=50, b=40, l=60, r=60),
     paper_bgcolor='rgba(30,30,30,1)',
     plot_bgcolor='rgba(20,20,20,1)',
     font=dict(color='#CCCCCC'),
-    title_font=dict(size=20, color='#FFFFFF'),
-    hoverlabel=dict(bgcolor='rgba(50,50,50,0.8)', font_size=13, font_family="Segoe UI")
+    hoverlabel=dict(bgcolor='rgba(50,50,50,0.8)', font_size=13)
 )
 
-# Step 6: Title and Plot
 st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-            🎯 Reaction Type vs Engagement Quality
+            🎯 Reaction Types & Engagement Quality Breakdown
         </span>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-st.plotly_chart(fig_nested_donut, use_container_width=True)
+st.plotly_chart(fig_nested, use_container_width=True)
 
-
-# Chart 5: Best Day to Post (by Impressions + Reach)
-summary_df['Engagement_Score'] = summary_df['Total_Impressions'] + summary_df['Total_Reach']
-best_day = summary_df.sort_values(by='Engagement_Score', ascending=False).iloc[0]['Day_Name']
-
-st.markdown(f"""
-<style>
-.best-day-box {{
-    background-color: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 14px;
-    padding: 16px 24px;
-    color: #FFFFFF;
-    font-size: 16px;
-    margin-top: 30px;
-    margin-bottom: 15px;
-    text-align: center;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
-}}
-.best-day-box strong {{
-    color: #FFDD57;
-}}
-</style>
-
-<div class="best-day-box">
-    📆 Best day to post this week based on <i>Impressions + Reach</i>: <strong>{best_day}</strong>
-</div>
-""", unsafe_allow_html=True)
 
 
 # 🔗 Clickable Post Table – Preserves original look, polished
