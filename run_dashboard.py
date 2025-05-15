@@ -410,102 +410,72 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- Chart 4: Nested Donut – Reaction Breakdown by Engagement Quality ---
-# --- Final Chart 4: True Nested Donut Chart (Sunburst) ---
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 
-# Step 1: Recalculate Engagement Score Categories
-def score_bucket(score):
-    if score >= 67:
-        return 'High Engagement'
-    elif score >= 34:
-        return 'Moderate Engagement'
-    else:
-        return 'Low Engagement'
+# Inner data
+inner_labels = ["Like", "Love"]
+inner_values = [3, 1]
+inner_colors = ["#1877F2", "#D81B60"]
 
-weekly_df['Engagement_Level'] = weekly_df['Engagement_Score'].apply(score_bucket)
+# Outer segments (engagement score per reaction type)
+like_labels = ["Like - Low", "Like - Moderate"]
+like_values = [27, 100]
+like_colors = ["#BBDEFB", "#42A5F5"]
 
-# Step 2: Filter reactions
-like_df = weekly_df[weekly_df['Total_Like_Reactions'] > 0].copy()
-love_df = weekly_df[weekly_df['Total_Love_Reactions'] > 0].copy()
+love_labels = ["Love - Moderate"]
+love_values = [39]
+love_colors = ["#EF5350"]
 
-# Step 3: Sum scores by engagement level within each reaction
-def aggregate_engagement(df, reaction_label):
-    agg = (
-        df.groupby('Engagement_Level')['Engagement_Score']
-        .sum()
-        .reindex(['High Engagement', 'Moderate Engagement', 'Low Engagement'], fill_value=0)
-        .reset_index()
-    )
-    agg['Reaction'] = reaction_label
-    return agg
+# Plotly figure
+fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'domain'}, {'type': 'domain'}]])
 
-like_agg = aggregate_engagement(like_df, 'Like')
-love_agg = aggregate_engagement(love_df, 'Love')
+# Center donut (combined Like + Love)
+fig.add_trace(go.Pie(
+    labels=inner_labels,
+    values=inner_values,
+    hole=0.5,
+    marker=dict(colors=inner_colors),
+    textinfo='label+value',
+    hovertemplate='<b>%{label}</b><br>Posts: %{value}<extra></extra>',
+    domain=dict(x=[0.25, 0.75], y=[0.25, 0.75]),  # Centered
+    showlegend=False
+), row=1, col=1)
 
-combined = pd.concat([like_agg, love_agg], ignore_index=True)
+# Left outer donut (Like engagement)
+fig.add_trace(go.Pie(
+    labels=like_labels,
+    values=like_values,
+    hole=0.72,
+    marker=dict(colors=like_colors),
+    textinfo='label+value',
+    hovertemplate='<b>%{label}</b><br>Score: %{value}<extra></extra>',
+    domain=dict(x=[0, 0.5], y=[0, 1]),
+    showlegend=False
+), row=1, col=1)
 
-# Step 4: Build Sunburst data (Label, Parent, Value)
-sunburst_data = []
+# Right outer donut (Love engagement)
+fig.add_trace(go.Pie(
+    labels=love_labels,
+    values=love_values,
+    hole=0.72,
+    marker=dict(colors=love_colors),
+    textinfo='label+value',
+    hovertemplate='<b>%{label}</b><br>Score: %{value}<extra></extra>',
+    domain=dict(x=[0.5, 1.0], y=[0, 1]),
+    showlegend=False
+), row=1, col=2)
 
-# Root
-sunburst_data.append({'Label': 'Reactions', 'Parent': '', 'Value': 1})
-
-# First level
-sunburst_data.append({'Label': 'Like', 'Parent': 'Reactions', 'Value': like_df['Engagement_Score'].sum()})
-sunburst_data.append({'Label': 'Love', 'Parent': 'Reactions', 'Value': love_df['Engagement_Score'].sum()})
-
-# Second level
-color_map = {
-    'Like - High Engagement': '#0D47A1',
-    'Like - Moderate Engagement': '#42A5F5',
-    'Like - Low Engagement': '#BBDEFB',
-    'Love - High Engagement': '#B71C1C',
-    'Love - Moderate Engagement': '#EF5350',
-    'Love - Low Engagement': '#FFCDD2',
-    'Like': '#1877F2',
-    'Love': '#D81B60',
-    'Reactions': '#333333'
-}
-
-for _, row in combined.iterrows():
-    label = f"{row['Reaction']} - {row['Engagement_Level']}"
-    sunburst_data.append({
-        'Label': label,
-        'Parent': row['Reaction'],
-        'Value': row['Engagement_Score']
-    })
-
-sunburst_df = pd.DataFrame(sunburst_data)
-
-# Step 5: Create sunburst chart
-fig_sunburst = px.sunburst(
-    sunburst_df,
-    names='Label',
-    parents='Parent',
-    values='Value',
-    color='Label',
-    color_discrete_map=color_map
-)
-
-# Step 6: Layout
-fig_sunburst.update_layout(
-    title_text='🍩 Final Nested Donut: Reaction Type by Engagement Score Level',
-    margin=dict(t=60, b=40, l=60, r=60),
+# Layout
+fig.update_layout(
+    title_text="🍩 Final Nested Donut: Properly Segmented Reaction vs Engagement",
     paper_bgcolor='rgba(30,30,30,1)',
     plot_bgcolor='rgba(20,20,20,1)',
     font=dict(color='#CCCCCC', size=13),
-    uniformtext=dict(minsize=10, mode='hide')
+    margin=dict(t=60, b=40, l=40, r=40)
 )
 
-# Step 7: Show in Streamlit
-st.markdown("""
-    <div style='text-align: center; padding-bottom: 10px;'>
-        <span style='font-size: 22px; font-weight: 700; color: #FFFFFF;'>
-            🥯 Nested Donut: Reactions by Engagement Level
-        </span>
-    </div>
-""", unsafe_allow_html=True)
-
-st.plotly_chart(fig_sunburst, use_container_width=True)
+st.plotly_chart(fig, use_container_width=True)
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
