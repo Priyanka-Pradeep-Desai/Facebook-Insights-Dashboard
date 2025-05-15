@@ -242,12 +242,10 @@ st.plotly_chart(fig_reactions, use_container_width=True)
 # Chart 2: Total Impressions vs Reach (show both even if same)
 fig_impressions = go.Figure()
 
-# Attach post content as text (used in hover)
-fig_impressions = go.Figure()
-
+# Invisible marker layer to show post content in hover
 fig_impressions.add_trace(go.Scatter(
     x=weekly_df['Created_Time'],
-    y=[0.001] * len(weekly_df),  # use NaN instead of None
+    y=[0.001] * len(weekly_df),
     mode='markers',
     name='',
     text=weekly_df['Content'],
@@ -257,39 +255,42 @@ fig_impressions.add_trace(go.Scatter(
     hoverlabel=dict(namelength=0)
 ))
 
-
-# Trace 1: Impressions
+# Trace 1: Impressions (Amber)
 fig_impressions.add_trace(go.Scatter(
     x=weekly_df['Created_Time'],
     y=weekly_df['Total_Impressions'],
     mode='lines+markers',
-    name='Total Impressions',
-    line=dict(color='#1E88E5'),
+    name='📊 Impressions',
+    line=dict(color='#FFB300', width=2),
+    marker=dict(size=6),
     hovertemplate='<b>Impressions:</b> %{y}<extra></extra>'
 ))
 
-# Trace 2: Reach
+# Trace 2: Reach (Green)
 fig_impressions.add_trace(go.Scatter(
     x=weekly_df['Created_Time'],
     y=weekly_df['Total_Reach'],
     mode='lines+markers',
-    name='Total Reach',
-    line=dict(color='#FB8C00'),
+    name='👥 Reach',
+    line=dict(color='#43A047', width=2),
+    marker=dict(size=6),
     hovertemplate='<b>Reach:</b> %{y}<extra></extra>'
 ))
 
+# Layout improvements
 fig_impressions.update_layout(
     title='📈 Total Impressions vs Reach (Hover shows both)',
-    xaxis_title='Created Time',
-    yaxis_title='Value',
+    xaxis_title='Date',
+    yaxis_title='Count',
     hovermode='x unified',
     title_font=dict(size=20, color='#FFFFFF'),
     font=dict(color='#CCCCCC'),
     plot_bgcolor='rgba(0,0,0,0)',
     paper_bgcolor='rgba(0,0,0,0)',
+    margin=dict(l=60, r=40, t=80, b=60),
+    legend=dict(orientation='h', yanchor='bottom', y=1.1, xanchor='right', x=1)
 )
 st.plotly_chart(fig_impressions, use_container_width=True)
-
 
 # Chart 3: Top 10 Posts by Clicks
 top_posts = weekly_df.sort_values(by='Post_Clicks', ascending=False).head(10)
