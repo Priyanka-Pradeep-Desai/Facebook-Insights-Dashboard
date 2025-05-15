@@ -369,56 +369,16 @@ st.info(f"📆 Best day to post this week based on Impressions + Reach: **{best_
 # 🔝 Top Clicked Posts Table (Clean & Professional)
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.subheader("🔗 Top Clicked Post Links")
+# Step 1: Select and sort by clicks
+link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactions', 'Permanent_Link']].copy()
+link_table = link_table.sort_values(by='Post_Clicks', ascending=False)  # <-- this line sorts it
 
-# Step 1: Select and sort
-link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Permanent_Link']].copy()
-link_table = link_table.sort_values(by='Post_Clicks', ascending=False)
-link_table['Content'] = link_table['Content'].replace({r'\n': ' '}, regex=True)
-
-# Step 2: Make link clickable (keep emoji)
+# Step 2: Make links clickable
 link_table['Permanent_Link'] = link_table['Permanent_Link'].apply(
-    lambda url: f'<a href="{url}" target="_blank">🔗 View Post</a>'
+    lambda url: f'<a href="{url}" target="_blank">View Post</a>'
 )
 
-# Step 3: Rename columns
-link_table.columns = ['Date', 'Post Content', 'Clicks', 'Link']
-
-# Step 4: Style to match your dashboard with small refinements
-st.markdown("""
-<style>
-table {
-    background-color: #1e1e1e;
-    color: #cccccc;
-    border-collapse: collapse;
-    width: 100%;
-    font-size: 14px;
-    line-height: 1.5;
-    table-layout: fixed;
-    word-wrap: break-word;
-}
-th {
-    background-color: #2b2b2b;
-    color: #ffffff;
-    padding: 10px 8px;
-    text-align: left;
-}
-td {
-    padding: 10px 8px;
-    vertical-align: top;
-    border-top: 1px solid #333;
-}
-a {
-    color: #42A5F5;
-    text-decoration: none;
-    font-weight: 500;
-}
-a:hover {
-    text-decoration: underline;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# Step 5: Render
+# Step 3: Render the table
 st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
 
 # Use Google Sheet instead of local file for timestamp tracking
