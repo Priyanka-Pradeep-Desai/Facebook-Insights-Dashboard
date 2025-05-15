@@ -314,9 +314,20 @@ fig_impressions.add_trace(go.Scatter(
     hovertemplate='<b>Reach:</b> %{y}<extra></extra>'
 ))
 
+st.markdown(
+    """
+    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
+        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
+            📈 Total Impressions vs Reach 
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 # Step 7: Layout styling
 fig_impressions.update_layout(
-    title='📈 Total Impressions vs Reach ',
+    title=' ',
     xaxis_title='Date',
     yaxis_title='Count',
     hovermode='x unified',
@@ -343,13 +354,24 @@ weekly_df['Engagement_Score'] = (
 # Step 2: Sort top 10
 top_engaged_posts = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).copy()
 
+st.markdown(
+    """
+    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
+        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
+            🏆 Top 10 Posts by Total Engagement
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 # Step 3: Create horizontal bar chart with gradient coloring
 fig_bar = px.bar(
     top_engaged_posts.iloc[::-1],  # Reverse so highest is on top
     x='Engagement_Score',
     y='Content',
     orientation='h',
-    title='🏆 Top 10 Posts by Total Engagement',
+    title=' ',
     color='Engagement_Score',
     color_continuous_scale='Cividis',  # Try 'Inferno', 'Viridis', 'Turbo' too
     labels={'Content': 'Post', 'Engagement_Score': 'Engagement Score'}
@@ -419,9 +441,20 @@ fig_reactions_donut.update_traces(
     hovertemplate="<b>%{label}</b><br>Reactions: %{value}<br><br><b>Sample Posts:</b><br>%{customdata[0]}<extra></extra>"
 )
 
+st.markdown(
+    """
+    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
+        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
+            ❤️ Emotional Reaction Breakdown
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 # Chart layout
 fig_reactions_donut.update_layout(
-    title='❤️ Emotional Reaction Breakdown',
+    title=' ',
     title_font=dict(size=20, color='#FFFFFF'),
     font=dict(color='#CCCCCC'),
     paper_bgcolor='rgba(30,30,30,1)',
@@ -499,6 +532,7 @@ st.markdown(f"""
     color: #FFFFFF;
     font-size: 16px;
     margin-top: 30px;
+    margin-bottom: 30px;
     text-align: center;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
 }}
