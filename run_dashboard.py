@@ -188,7 +188,7 @@ except Exception as e:
     st.stop()
 
 # Chart 1: Daily Reaction Types Breakdown
-custom_colors = ['#1877F2', '#D81B60']  # Dark pink and soft pink
+custom_colors = ['#1877F2', '#D81B60']
 
 # Add post content per day to summary_df
 weekly_df['Created_Date'] = weekly_df['Created_Time'].dt.date
@@ -206,8 +206,8 @@ summary_df = summary_df.merge(contents_by_day, on='Created_Date', how='left')
 fig_reactions = px.bar(
     summary_df,
     x='Created_Date',
-    y=['Total_Likes', 'Total_Loves'],
-    title="💬 Daily Reaction Type Breakdown",
+    y=[' 👍 ', ' ❤️ '],
+    title=" 💬 Daily Reaction Type Breakdown",
     labels={"value": "Count", "variable": "Reaction Type", "Created_Date": "Date"},
     barmode='group')
     
@@ -216,7 +216,7 @@ fig_reactions.update_traces(
     customdata=summary_df[['Post_Contents']].values,
     marker_line_width=2,
     marker_line_color='rgba(255,255,255,0.05)',
-    opacity=0.9,
+    opacity=0.8,
     hovertemplate='%{x}<br><b>%{fullData.name}:</b> %{y}<br><b>Posts:</b><br>%{customdata[0]}<extra></extra>',
 )
 
@@ -230,7 +230,7 @@ fig_reactions.update_layout(
     paper_bgcolor='rgba(30,30,30,1)',
     title_font=dict(size=22, color='#FFFFFF'),
     font=dict(family="Segoe UI, sans-serif", size=14, color='#CCCCCC'),
-    legend_title_text='Reaction Type',
+    legend_title_text='Reactions',
     xaxis=dict(title='Date', showgrid=False, tickangle=0),
     yaxis=dict(title='Count', gridcolor='rgba(255,255,255,0.05)'),
     legend=dict(orientation='h', yanchor='bottom', y=1.1, xanchor='right', x=1),
