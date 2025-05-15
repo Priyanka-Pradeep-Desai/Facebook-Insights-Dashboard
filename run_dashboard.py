@@ -409,54 +409,48 @@ fig_bar.update_traces(
 # Step 6: Show in Streamlit
 st.plotly_chart(fig_bar, use_container_width=True)
 
-# --- Chart 4: Nested Donut – Reaction Breakdown by Engagement Quality ---
-import plotly.graph_objects as go
-
-# Data: inner (reaction), outer (reaction + engagement)
-labels = [
-    "Reactions",         # Root
-    "Like", "Love",      # Inner ring
-    "Like - Low", "Like - Moderate",  # Like engagement
-    "Love - Moderate"               # Love engagement
-]
-parents = [
-    "",                 # Reactions has no parent
-    "Reactions", "Reactions",     # Like and Love under Reactions
-    "Like", "Like",               # Engagement under Like
-    "Love"                        # Engagement under Love
-]
-values = [
-    4,        # Total reactions
-    3, 1,     # 3 Like posts, 1 Love post
-    27, 100,  # Engagement scores for Like
-    39        # Engagement score for Love
-]
-colors = [
-    "#111111",      # Reactions center (hidden)
-    "#1877F2", "#D81B60",      # Like blue, Love red
-    "#BBDEFB", "#42A5F5",      # Like engagement (light to darker)
-    "#EF5350"                 # Love engagement (moderate red)
-]
-
-fig = go.Figure(go.Sunburst(
-    labels=labels,
-    parents=parents,
-    values=values,
-    branchvalues="total",
-    marker=dict(colors=colors),
-    insidetextorientation='radial',
-    hovertemplate='<b>%{label}</b><br>Value: %{value}<extra></extra>'
-))
-
-fig.update_layout(
-    title_text="🍩 True Nested Donut: Reaction vs Engagement",
-    paper_bgcolor='rgba(30,30,30,1)',
-    plot_bgcolor='rgba(20,20,20,1)',
-    font=dict(color='#CCCCCC', size=13),
-    margin=dict(t=60, b=40, l=40, r=40)
+# Nested Donut Pie Chart: Engagement Breakdown
+st.markdown(
+    """
+    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
+        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
+            🍩 Engagement Breakdown (Nested Donut)
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
 )
 
-st.plotly_chart(fig, use_container_width=True)
+# Step 1: Define engagement components
+inner_labels = ['Clicks', 'Reactions']
+inner_values = [total_clicks, total_reactions]
+
+outer_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions']
+outer_parents = ['Clicks', 'Reactions', 'Reactions']
+outer_values = [total_clicks, total_likes, total_loves]
+
+# Step 2: Create the nested donut chart using Plotly Sunburst
+fig_donut = go.Figure(go.Sunburst(
+    labels=inner_labels + outer_labels,
+    parents=[""] * len(inner_labels) + outer_parents,
+    values=inner_values + outer_values,
+    branchvalues="total",
+    marker=dict(colors=['#29B6F6', '#FF7043', '#4FC3F7', '#81C784', '#F06292']),
+    hovertemplate='<b>%{label}</b><br>Engagement: %{value}<extra></extra>'
+))
+
+# Step 3: Style the layout
+fig_donut.update_layout(
+    margin=dict(t=50, l=0, r=0, b=0),
+    paper_bgcolor='rgba(30,30,30,1)',
+    plot_bgcolor='rgba(20,20,20,1)',
+    font=dict(color='#CCCCCC'),
+    height=600
+)
+
+# Step 4: Display the chart
+st.plotly_chart(fig_donut, use_container_width=True)
+
 
 
 # 🔗 Clickable Post Table – Preserves original look, polished
