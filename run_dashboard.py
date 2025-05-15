@@ -312,7 +312,7 @@ fig_bar = px.bar(
     orientation='h',
     title='🏆 Top 10 Posts by Total Engagement',
     color='Engagement_Score',
-    color_continuous_scale='Plasma',  # Try 'Inferno', 'Viridis', 'Turbo' too
+    color_continuous_scale='Cividis',  # Try 'Inferno', 'Viridis', 'Turbo' too
     labels={'Content': 'Post', 'Engagement_Score': 'Engagement Score'}
 )
 
