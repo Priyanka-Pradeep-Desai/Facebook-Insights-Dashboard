@@ -206,7 +206,7 @@ summary_df = summary_df.merge(contents_by_day, on='Created_Date', how='left')
 fig_reactions = px.bar(
     summary_df,
     x='Created_Date',
-    y=[' 👍 ', ' ❤️ '],
+    y=['Total_Likes', 'Total_Loves'],
     title=" 💬 Daily Reaction Type Breakdown",
     labels={"value": "Count", "variable": "Reaction Type", "Created_Date": "Date"},
     barmode='group')
