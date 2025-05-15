@@ -504,7 +504,7 @@ st.markdown(f"""
 
 
 # 🔗 Clickable Post Table – Preserves original look, polished
-st.subheader("🔗 Top Links Clicked Posts")
+st.title("🔗 Top Links Clicked Posts")
 # Step 1: Select and sort by clicks
 link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactions', 'Permanent_Link']].copy()
 link_table = link_table.sort_values(by='Post_Clicks', ascending=False)  # <-- this line sorts it
