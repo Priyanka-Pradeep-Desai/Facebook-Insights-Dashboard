@@ -367,22 +367,23 @@ best_day = summary_df.sort_values(by='Engagement_Score', ascending=False).iloc[0
 st.info(f"📆 Best day to post this week based on Impressions + Reach: **{best_day}**")
 
 # 🔝 Top Clicked Posts Table (Clean & Professional)
-st.subheader("🖱️ Top Clicked Posts")
+# 🔗 Clickable Post Table – Preserves original look, polished
+st.subheader("🔗 Top Clicked Post Links")
 
-# Step 1: Prepare and sort data
+# Step 1: Select and sort
 link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Permanent_Link']].copy()
 link_table = link_table.sort_values(by='Post_Clicks', ascending=False)
 link_table['Content'] = link_table['Content'].replace({r'\n': ' '}, regex=True)
 
-# Step 2: Format links (no emoji, clean color)
+# Step 2: Make link clickable (keep emoji)
 link_table['Permanent_Link'] = link_table['Permanent_Link'].apply(
-    lambda url: f'<a href="{url}" target="_blank" style="color:#4FC3F7; text-decoration:none;">View</a>'
+    lambda url: f'<a href="{url}" target="_blank">🔗 View Post</a>'
 )
 
-# Step 3: Rename columns for readability
+# Step 3: Rename columns
 link_table.columns = ['Date', 'Post Content', 'Clicks', 'Link']
 
-# Step 4: Apply dark theme table styles
+# Step 4: Style to match your dashboard with small refinements
 st.markdown("""
 <style>
 table {
@@ -391,23 +392,25 @@ table {
     border-collapse: collapse;
     width: 100%;
     font-size: 14px;
-    border: 1px solid #444;
+    line-height: 1.5;
+    table-layout: fixed;
+    word-wrap: break-word;
 }
 th {
     background-color: #2b2b2b;
     color: #ffffff;
-    padding: 8px;
-    border-bottom: 1px solid #555;
+    padding: 10px 8px;
     text-align: left;
 }
 td {
-    padding: 8px;
-    border-bottom: 1px solid #333;
+    padding: 10px 8px;
     vertical-align: top;
+    border-top: 1px solid #333;
 }
 a {
+    color: #42A5F5;
+    text-decoration: none;
     font-weight: 500;
-    color: #4FC3F7;
 }
 a:hover {
     text-decoration: underline;
@@ -415,10 +418,8 @@ a:hover {
 </style>
 """, unsafe_allow_html=True)
 
-# Step 5: Render final table
+# Step 5: Render
 st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
-
-
 
 # Use Google Sheet instead of local file for timestamp tracking
 TIMESTAMP_SHEET_URL = "https://docs.google.com/spreadsheets/d/1PWMPIPELb_wOKZ0Oqmh0YppQPt_pvUjJaXQn9tp4G-o"
