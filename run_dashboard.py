@@ -410,7 +410,9 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- Chart 4: Nested Donut – Reaction Breakdown by Engagement Quality ---
-# Step 1: Classify based on Engagement Score
+# --- Chart 4: Properly Nested Donut – Split Like & Love Engagement Ring Aligned ---
+
+# Step 1: Bucket by score
 def score_bucket(score):
     if score >= 67:
         return 'High'
@@ -425,20 +427,22 @@ weekly_df['Engagement_Level'] = weekly_df['Engagement_Score'].apply(score_bucket
 like_df = weekly_df[weekly_df['Total_Like_Reactions'] > 0].copy()
 love_df = weekly_df[weekly_df['Total_Love_Reactions'] > 0].copy()
 
-# Step 3: Calculate totals
+# Step 3: Inner ring data (counts)
 inner_labels = ['Like', 'Love']
 inner_values = [len(like_df), len(love_df)]
 inner_colors = ['#1877F2', '#D81B60']
 
-# Step 4: Aggregate scores by engagement level
-def get_score_by_level(df, reaction_name):
-    scores = df.groupby('Engagement_Level')['Engagement_Score'].sum().reindex(['High', 'Moderate', 'Low'], fill_value=0)
-    return [(f"{reaction_name} - {lvl}", val) for lvl, val in scores.items() if val > 0]
+# Step 4: Outer rings data (score sums)
+like_scores = like_df.groupby('Engagement_Level')['Engagement_Score'].sum().reindex(['High', 'Moderate', 'Low'], fill_value=0)
+love_scores = love_df.groupby('Engagement_Level')['Engagement_Score'].sum().reindex(['High', 'Moderate', 'Low'], fill_value=0)
 
-outer_data = get_score_by_level(like_df, 'Like') + get_score_by_level(love_df, 'Love')
-outer_labels, outer_values = zip(*outer_data)
+like_labels = [f'Like - {lvl}' for lvl in like_scores.index]
+love_labels = [f'Love - {lvl}' for lvl in love_scores.index]
 
-# Define shade-based color scheme
+like_values = like_scores.values
+love_values = love_scores.values
+
+# Step 5: Color mapping
 like_shades = {
     'High': '#0D47A1',      # dark blue
     'Moderate': '#42A5F5',  # medium blue
@@ -449,25 +453,13 @@ love_shades = {
     'Moderate': '#EF5350',  # medium red
     'Low': '#FFCDD2'        # light red
 }
+like_colors = [like_shades[lvl] for lvl in like_scores.index]
+love_colors = [love_shades[lvl] for lvl in love_scores.index]
 
-# Assign outer segment colors based on label content
-outer_colors = []
-for label in outer_labels:
-    if label.startswith('Like'):
-        for level in like_shades:
-            if level in label:
-                outer_colors.append(like_shades[level])
-                break
-    elif label.startswith('Love'):
-        for level in love_shades:
-            if level in label:
-                outer_colors.append(love_shades[level])
-                break
-
-# Step 5: Build the concentric donut chart
+# Step 6: Build the plot
 fig = go.Figure()
 
-# Inner ring (Reaction type)
+# Inner Pie
 fig.add_trace(go.Pie(
     labels=inner_labels,
     values=inner_values,
@@ -480,23 +472,37 @@ fig.add_trace(go.Pie(
     direction='clockwise'
 ))
 
-# Outer ring (Engagement Score Sum per Reaction+Level)
+# Outer Pie (Like engagement, aligned to left half)
 fig.add_trace(go.Pie(
-    labels=outer_labels,
-    values=outer_values,
+    labels=like_labels,
+    values=like_values,
     hole=0.72,
-    marker=dict(colors=outer_colors),
+    marker=dict(colors=like_colors),
     textinfo='label+value',
-    hovertemplate='<b>%{label}</b><br>Engagement Score: %{value}<extra></extra>',
-    domain=dict(x=[0, 1], y=[0, 1]),
+    hovertemplate='<b>%{label}</b><br>Score: %{value}<extra></extra>',
+    domain=dict(x=[0, 0.5], y=[0, 1]),  # left half
     sort=False,
     direction='clockwise',
     showlegend=False
 ))
 
-# Step 6: Layout & polish
+# Outer Pie (Love engagement, aligned to right half)
+fig.add_trace(go.Pie(
+    labels=love_labels,
+    values=love_values,
+    hole=0.72,
+    marker=dict(colors=love_colors),
+    textinfo='label+value',
+    hovertemplate='<b>%{label}</b><br>Score: %{value}<extra></extra>',
+    domain=dict(x=[0.5, 1], y=[0, 1]),  # right half
+    sort=False,
+    direction='clockwise',
+    showlegend=False
+))
+
+# Layout polish
 fig.update_layout(
-    title_text='🍩 Clean Donut: Reaction Type Weighted by Engagement Score',
+    title_text='🍩 Final Donut: Engagement Score by Reaction Type',
     margin=dict(t=60, b=40, l=40, r=40),
     paper_bgcolor='rgba(30,30,30,1)',
     plot_bgcolor='rgba(20,20,20,1)',
@@ -504,7 +510,7 @@ fig.update_layout(
     uniformtext=dict(minsize=10, mode='hide')
 )
 
-# Step 7: Render
+# Display
 st.markdown("""
     <div style='text-align: center; padding-bottom: 10px;'>
         <span style='font-size: 22px; font-weight: 700; color: #FFFFFF;'>
@@ -514,7 +520,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.plotly_chart(fig, use_container_width=True)
-
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
