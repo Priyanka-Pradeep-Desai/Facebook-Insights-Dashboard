@@ -108,7 +108,7 @@ st.markdown("""
     box-shadow: 0 8px 20px rgba(0,0,0,0.5);
 }}
 .kpi-label {{
-    font-size: 16px;
+    font-size: 22px;
     font-weight: 500;
     color: #cccccc;
     white-space: nowrap;
@@ -117,7 +117,7 @@ st.markdown("""
     max-width: 160px;
 }}
 .kpi-value {{
-    font-size: 28px;
+    font-size: 30px;
     font-weight: 700;
     color: #ffffff;
     margin-top: 6px;
