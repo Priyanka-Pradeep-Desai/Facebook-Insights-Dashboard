@@ -410,49 +410,57 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- Chart 4: Nested Donut – Reaction Breakdown by Engagement Quality ---
-# Step 1: Classify engagement
-def classify_engagement(row):
-    if pd.isna(row['Post_Clicks']) or pd.isna(row['Total_Reactions']):
-        return 'Low Engagement'
-    elif row['Post_Clicks'] > row['Total_Reactions']:
+# Step 1: Classify engagement using Engagement_Score (0–100 scale)
+def score_bucket(score):
+    if score >= 67:
         return 'High Engagement'
-    elif abs(row['Post_Clicks'] - row['Total_Reactions']) <= 2:
+    elif score >= 34:
         return 'Moderate Engagement'
     else:
         return 'Low Engagement'
 
-weekly_df['Engagement_Quality'] = weekly_df.apply(classify_engagement, axis=1)
+weekly_df['Engagement_Quality'] = weekly_df['Engagement_Score'].apply(score_bucket)
 
-# Step 2: Prepare counts
+# Step 2: Split like/love posts
 like_posts = weekly_df[weekly_df['Total_Like_Reactions'] > 0]
 love_posts = weekly_df[weekly_df['Total_Love_Reactions'] > 0]
 
 like_count = len(like_posts)
 love_count = len(love_posts)
 
-# Inner ring
+# Inner donut
 inner_labels = ['Like', 'Love']
 inner_values = [like_count, love_count]
 inner_colors = ['#1877F2', '#D81B60']
 
-# Outer ring
+# Outer donut (based on score buckets)
 engagement_levels = ['High Engagement', 'Moderate Engagement', 'Low Engagement']
 engagement_colors = ['#00C49F', '#FFBB28', '#FF4C4C']
 
-like_engagement = like_posts['Engagement_Quality'].value_counts().reindex(engagement_levels, fill_value=0)
-love_engagement = love_posts['Engagement_Quality'].value_counts().reindex(engagement_levels, fill_value=0)
+like_engagement_score = (
+    like_posts
+    .groupby('Engagement_Quality')['Engagement_Score']
+    .sum()
+    .reindex(engagement_levels, fill_value=0)
+)
+
+love_engagement_score = (
+    love_posts
+    .groupby('Engagement_Quality')['Engagement_Score']
+    .sum()
+    .reindex(engagement_levels, fill_value=0)
+)
 
 outer_labels = (
-    [f'Like - {level}' for level in engagement_levels] +
-    [f'Love - {level}' for level in engagement_levels]
+    [f'Like - {lvl}' for lvl in engagement_levels] +
+    [f'Love - {lvl}' for lvl in engagement_levels]
 )
-outer_values = list(like_engagement.values) + list(love_engagement.values)
+outer_values = list(like_engagement_score.values) + list(love_engagement_score.values)
 outer_colors = engagement_colors * 2
 
-# Step 3: Plot two concentric donut layers
+# Step 3: Plot concentric donut
 fig = go.Figure()
 
-# Inner donut (Reaction Type)
 fig.add_trace(go.Pie(
     labels=inner_labels,
     values=inner_values,
@@ -465,40 +473,36 @@ fig.add_trace(go.Pie(
     domain=dict(x=[0, 1], y=[0, 1])
 ))
 
-# Outer donut (Engagement Quality)
 fig.add_trace(go.Pie(
     labels=outer_labels,
     values=outer_values,
-    hole=0.72,  # Bigger hole pushes ring outward
+    hole=0.72,
     direction='clockwise',
     sort=False,
     marker=dict(colors=outer_colors),
     textinfo='label+value',
-    hovertemplate='<b>%{label}</b><br>Post count: %{value}<extra></extra>',
+    hovertemplate='<b>%{label}</b><br>Engagement Score Sum: %{value}<extra></extra>',
     domain=dict(x=[0, 1], y=[0, 1]),
     showlegend=False
 ))
 
-# Step 4: Styling
 fig.update_layout(
-    title_text='🍩 Concentric Donut Chart: Like & Love Reactions with Engagement Breakdown',
+    title_text='🥯 Donut Chart: Reaction Type Weighted by Engagement Score Category',
     margin=dict(t=80, b=60, l=60, r=60),
     paper_bgcolor='rgba(30,30,30,1)',
     plot_bgcolor='rgba(20,20,20,1)',
     font=dict(color='#CCCCCC')
 )
 
-# Step 5: Display
 st.markdown("""
     <div style='text-align: center; padding-bottom: 10px;'>
         <span style='font-size: 22px; font-weight: 700; color: #FFFFFF;'>
-            🥯 Final Donut Chart: Reaction vs Engagement Quality
+            🥯 Reaction Breakdown by Scored Engagement Level
         </span>
     </div>
 """, unsafe_allow_html=True)
 
 st.plotly_chart(fig, use_container_width=True)
-
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
