@@ -188,7 +188,7 @@ except Exception as e:
     st.stop()
 
 # Chart 1: Daily Reaction Types Breakdown
-custom_colors = ['#C9184A', '#FF758F']  # Dark pink and soft pink
+custom_colors = ['#8E24AA', '#E53935']  # Dark pink and soft pink
 
 # Add post content per day to summary_df
 weekly_df['Created_Date'] = weekly_df['Created_Time'].dt.date
@@ -263,7 +263,7 @@ fig_impressions.add_trace(go.Scatter(
     y=weekly_df['Total_Impressions'],
     mode='lines+markers',
     name='Total Impressions',
-    line=dict(color='deepskyblue'),
+    line=dict(color='#1E88E5'),
     hovertemplate='<b>Impressions:</b> %{y}<extra></extra>'
 ))
 
@@ -273,7 +273,7 @@ fig_impressions.add_trace(go.Scatter(
     y=weekly_df['Total_Reach'],
     mode='lines+markers',
     name='Total Reach',
-    line=dict(color='orange'),
+    line=dict(color='#FB8C00'),
     hovertemplate='<b>Reach:</b> %{y}<extra></extra>'
 ))
 
