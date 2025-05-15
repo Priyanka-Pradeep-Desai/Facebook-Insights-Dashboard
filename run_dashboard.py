@@ -506,9 +506,11 @@ st.markdown(f"""
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
     """
-    <h3 style='text-align: center; font-size: 18px; font-family: "sans-serif"; font-weight: normal;'>
-        🔗 Top Links Clicked Posts
-    </h3>
+    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
+        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
+            🔗 Top Links Clicked Posts
+        </span>
+    </div>
     """,
     unsafe_allow_html=True
 )
