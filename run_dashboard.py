@@ -169,8 +169,6 @@ try:
     summary_df = duckdb.query("""
         SELECT
             CAST(Created_Time AS DATE) AS Created_Date,
-            STRFTIME(Created_Time, '%w')::INT AS Day_Of_Week,
-            STRFTIME(Created_Time, '%A') AS Day_Name,
             SUM(Post_Clicks) AS Total_Clicks,
             SUM(Total_Reactions) AS Total_Reactions,
             SUM(Total_Reach) AS Total_Reach,
@@ -178,12 +176,15 @@ try:
             SUM(Total_Love_Reactions) AS Total_Loves,
             SUM(Total_Impressions) AS Total_Impressions
         FROM weekly_df
-        GROUP BY Created_Date, Day_Of_Week, Day_Name
+        GROUP BY Created_Date
         ORDER BY Created_Date
     """).to_df()
 except Exception as e:
     st.error(f"❌ SQL query failed.\n\nError:\n{e}")
     st.stop()
+# Add correct weekday name and index in pandas (timezone-safe and reliable)
+summary_df['Day_Name'] = pd.to_datetime(summary_df['Created_Date']).dt.day_name()
+summary_df['Day_Of_Week'] = pd.to_datetime(summary_df['Created_Date']).dt.weekday  # 0=Monday, 6=Sunday
 
 # Chart 1: Daily Reaction Types Breakdown
 custom_colors = ['#1877F2', '#D81B60']
