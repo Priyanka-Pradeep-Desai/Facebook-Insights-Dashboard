@@ -410,10 +410,7 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- Chart 4: Nested Donut – Reaction Breakdown by Engagement Quality ---
-import pandas as pd
-import plotly.express as px
-
-# Step 1: Fix engagement classification
+# Step 1: Classify engagement
 def classify_engagement(row):
     if pd.isna(row['Post_Clicks']) or pd.isna(row['Total_Reactions']):
         return 'Low Engagement'
@@ -426,79 +423,82 @@ def classify_engagement(row):
 
 weekly_df['Engagement_Quality'] = weekly_df.apply(classify_engagement, axis=1)
 
-# Step 2: Build hierarchical data
-def build_reaction_engagement_tree(reaction_type, df):
-    subset = df[df[f'Total_{reaction_type}_Reactions'] > 0]
-    counts = subset['Engagement_Quality'].value_counts().to_dict()
-    
-    children = []
-    for level in ['High Engagement', 'Moderate Engagement', 'Low Engagement']:
-        value = counts.get(level, 0)
-        children.append({
-            'Label': level,
-            'Parent': reaction_type,
-            'Value': value
-        })
-    
-    return children + [{
-        'Label': reaction_type,
-        'Parent': '',
-        'Value': len(subset)
-    }]
+# Step 2: Prepare counts
+like_posts = weekly_df[weekly_df['Total_Like_Reactions'] > 0]
+love_posts = weekly_df[weekly_df['Total_Love_Reactions'] > 0]
 
-tree = build_reaction_engagement_tree('Like', weekly_df)
-tree += build_reaction_engagement_tree('Love', weekly_df)
+like_count = len(like_posts)
+love_count = len(love_posts)
 
-sunburst_df = pd.DataFrame(tree)
+# Inner ring
+inner_labels = ['Like', 'Love']
+inner_values = [like_count, love_count]
+inner_colors = ['#1877F2', '#D81B60']
 
-# Step 3: True nested donut using sunburst with clean styling
-fig = px.sunburst(
-    sunburst_df,
-    names='Label',
-    parents='Parent',
-    values='Value',
-    color='Label',
-    color_discrete_map={
-        'Like': '#1877F2',
-        'Love': '#D81B60',
-        'High Engagement': '#00C49F',
-        'Moderate Engagement': '#FFBB28',
-        'Low Engagement': '#FF4C4C'
-    },
-    branchvalues='total',
-    maxdepth=2
+# Outer ring
+engagement_levels = ['High Engagement', 'Moderate Engagement', 'Low Engagement']
+engagement_colors = ['#00C49F', '#FFBB28', '#FF4C4C']
+
+like_engagement = like_posts['Engagement_Quality'].value_counts().reindex(engagement_levels, fill_value=0)
+love_engagement = love_posts['Engagement_Quality'].value_counts().reindex(engagement_levels, fill_value=0)
+
+outer_labels = (
+    [f'Like - {level}' for level in engagement_levels] +
+    [f'Love - {level}' for level in engagement_levels]
 )
+outer_values = list(like_engagement.values) + list(love_engagement.values)
+outer_colors = engagement_colors * 2
 
-# Step 4: Styling fixes
-fig.update_traces(
-    hovertemplate='<b>%{label}</b><br>Count: %{value}<extra></extra>',
-    insidetextorientation='radial',
-    root_color='rgba(0,0,0,0)'
-)
+# Step 3: Plot two concentric donut layers
+fig = go.Figure()
 
+# Inner donut (Reaction Type)
+fig.add_trace(go.Pie(
+    labels=inner_labels,
+    values=inner_values,
+    hole=0.5,
+    direction='clockwise',
+    sort=False,
+    marker=dict(colors=inner_colors),
+    textinfo='label+value+percent',
+    hovertemplate='<b>%{label}</b><br>Post count: %{value}<extra></extra>',
+    domain=dict(x=[0, 1], y=[0, 1])
+))
+
+# Outer donut (Engagement Quality)
+fig.add_trace(go.Pie(
+    labels=outer_labels,
+    values=outer_values,
+    hole=0.72,  # Bigger hole pushes ring outward
+    direction='clockwise',
+    sort=False,
+    marker=dict(colors=outer_colors),
+    textinfo='label+value',
+    hovertemplate='<b>%{label}</b><br>Post count: %{value}<extra></extra>',
+    domain=dict(x=[0, 1], y=[0, 1]),
+    showlegend=False
+))
+
+# Step 4: Styling
 fig.update_layout(
-    title_text='🍩 Donut Pie Chart: Reaction Type vs Engagement Quality',
-    margin=dict(t=60, b=20, l=40, r=40),
-    uniformtext=dict(minsize=10, mode='hide'),
-    sunburstcolorway=['#1877F2', '#D81B60', '#00C49F', '#FFBB28', '#FF4C4C'],
+    title_text='🍩 Concentric Donut Chart: Like & Love Reactions with Engagement Breakdown',
+    margin=dict(t=80, b=60, l=60, r=60),
     paper_bgcolor='rgba(30,30,30,1)',
     plot_bgcolor='rgba(20,20,20,1)',
     font=dict(color='#CCCCCC')
 )
 
-# Step 5: Render
-st.markdown(
-    """
-    <div style='text-align: center; padding-top: 10px; padding-bottom: 10px;'>
+# Step 5: Display
+st.markdown("""
+    <div style='text-align: center; padding-bottom: 10px;'>
         <span style='font-size: 22px; font-weight: 700; color: #FFFFFF;'>
-            🍩 Donut Pie Chart: Reaction Type vs Engagement Quality
+            🥯 Final Donut Chart: Reaction vs Engagement Quality
         </span>
     </div>
-    """,
-    unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
 
 st.plotly_chart(fig, use_container_width=True)
+
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
