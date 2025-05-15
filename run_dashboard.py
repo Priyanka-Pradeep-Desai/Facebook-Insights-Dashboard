@@ -410,54 +410,35 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # Nested Donut Pie Chart: Engagement Breakdown
-st.markdown(
-    """
-    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
-        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-            🍩 Engagement Breakdown (Nested Donut)
-        </span>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-# Step 1: Define engagement components
-inner_labels = ['Clicks', 'Reactions']
-inner_values = [total_clicks, total_reactions]
-
-outer_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions']
-outer_parents = ['Clicks', 'Reactions', 'Reactions']
-outer_values = [total_clicks, total_likes, total_loves]
-
-# Step 2: Create the nested donut chart using Plotly Sunburst
 fig_donut = go.Figure(go.Sunburst(
-    labels=inner_labels + outer_labels,
-    parents=[""] * len(inner_labels) + outer_parents,
-    values=inner_values + outer_values,
+    labels=['Clicks', 'Reactions', 'Post Clicks', 'Like Reactions', 'Love Reactions'],
+    parents=['', '', 'Clicks', 'Reactions', 'Reactions'],
+    values=[total_clicks, total_reactions, total_clicks, total_likes, total_loves],
     branchvalues="total",
     marker=dict(
-        colors=['#00B0FF', '#FF7043', '#4DD0E1', '#66BB6A', '#F06292'],
-        line=dict(color="rgba(255,255,255,0.5)", width=1.5)
+        colors=[
+            '#2C3E50',       # Inner Clicks
+            '#424242',       # Inner Reactions
+            '#5DADE2',       # Post Clicks (soft blue)
+            '#1877F2',       # Like Reactions (Facebook blue)
+            '#D81B60'        # Love Reactions (magenta)
+        ],
+        line=dict(color='rgba(255,255,255,0.1)', width=2)
     ),
-    insidetextorientation='radial',
     hovertemplate='<b>%{label}</b><br>Value: %{value}<extra></extra>',
+    insidetextorientation='radial',
     maxdepth=2
 ))
 
-# Step 3: Style the layout
 fig_donut.update_layout(
-    margin=dict(t=30, l=20, r=20, b=20),
-    paper_bgcolor='rgba(20,20,20,1)',
-    plot_bgcolor='rgba(20,20,20,1)',
-    font=dict(color='#E0E0E0', family='Segoe UI'),
-    sunburstcolorway=['#00B0FF', '#FF7043', '#4DD0E1', '#66BB6A', '#F06292'],
+    margin=dict(t=20, l=10, r=10, b=20),
+    paper_bgcolor='rgba(15,15,15,1)',
+    plot_bgcolor='rgba(15,15,15,1)',
+    font=dict(color='#CCCCCC', family='Segoe UI'),
     uniformtext=dict(minsize=12, mode='hide')
 )
 
-# Step 4: Display the chart
 st.plotly_chart(fig_donut, use_container_width=True)
-
-
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
