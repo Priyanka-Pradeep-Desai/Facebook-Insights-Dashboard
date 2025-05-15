@@ -13,6 +13,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import json
 from pathlib import Path
 import numpy as np
+from plotly.subplots import make_subplots
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -349,9 +350,6 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # Chart 4: Love vs Like Reactions - Nested Donut Chart with Extra KPIs
-
-from plotly.subplots import make_subplots
-
 # Step 1: Donut Chart (Impressions/Reach inner, Reactions outer)
 fig_donut = make_subplots(rows=1, cols=1, specs=[[{'type':'domain'}]])
 
@@ -401,14 +399,14 @@ resonance_depth = total_loves / (total_likes + total_loves) if (total_likes + to
 # Step 3: Show Styled KPI Cards
 st.markdown("""
 <style>
-.extra-kpi-bar {
+.extra-kpi-bar {{
     display: flex;
     justify-content: center;
     gap: 40px;
     margin-top: 20px;
     flex-wrap: wrap;
-}
-.extra-kpi {
+}}
+.extra-kpi {{
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 16px;
@@ -417,20 +415,20 @@ st.markdown("""
     text-align: center;
     width: 280px;
     transition: transform 0.3s ease;
-}
-.extra-kpi:hover {
+}}
+.extra-kpi:hover {{
     transform: scale(1.05);
-}
-.extra-kpi-label {
+}}
+.extra-kpi-label {{
     font-size: 17px;
     color: #cccccc;
-}
-.extra-kpi-value {
+}}
+.extra-kpi-value {{
     font-size: 28px;
     font-weight: bold;
     color: #ffffff;
     margin-top: 8px;
-}
+}}
 </style>
 
 <div class="extra-kpi-bar">
@@ -447,7 +445,6 @@ st.markdown("""
     reaction_rate=f"{reaction_rate:.2%}",
     resonance_depth=f"{resonance_depth:.1%}"
 ), unsafe_allow_html=True)
-
 
 # Chart 5: Best Day to Post (by Impressions + Reach)
 summary_df['Engagement_Score'] = summary_df['Total_Impressions'] + summary_df['Total_Reach']
