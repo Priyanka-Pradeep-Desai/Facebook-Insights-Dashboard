@@ -366,11 +366,53 @@ summary_df['Engagement_Score'] = summary_df['Total_Impressions'] + summary_df['T
 best_day = summary_df.sort_values(by='Engagement_Score', ascending=False).iloc[0]['Day_Name']
 st.info(f"📆 Best day to post this week based on Impressions + Reach: **{best_day}**")
 
-# Clickable Post Table
-st.subheader("🔗 Clickable Post Links")
-link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactions', 'Permanent_Link']].copy()
-link_table['Permanent_Link'] = link_table['Permanent_Link'].apply(lambda url: f'<a href="{url}" target="_blank">View Post</a>')
+# Clickable Post Table (Sorted by Clicks)
+st.subheader("🖱️ Top Clicked Posts")
+
+# Step 1: Select and sort relevant data
+link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Permanent_Link']].copy()
+link_table = link_table.sort_values(by='Post_Clicks', ascending=False)
+
+# Step 2: Make links clickable
+link_table['Permanent_Link'] = link_table['Permanent_Link'].apply(
+    lambda url: f'<a href="{url}" target="_blank">🔗 View Post</a>'
+)
+
+# Step 3: Rename columns for display
+link_table.columns = ['Date', 'Post Content', 'Clicks', 'Link']
+
+# Step 4: Display styled table
+st.markdown("""
+<style>
+table {
+    background-color: #1e1e1e;
+    color: #cccccc;
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+}
+th {
+    background-color: #2b2b2b;
+    color: #ffffff;
+    padding: 8px;
+}
+td {
+    padding: 8px;
+    vertical-align: top;
+}
+a {
+    color: #42a5f5;  /* Light blue */
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Step 5: Render the HTML table
 st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
+
 
 # Use Google Sheet instead of local file for timestamp tracking
 TIMESTAMP_SHEET_URL = "https://docs.google.com/spreadsheets/d/1PWMPIPELb_wOKZ0Oqmh0YppQPt_pvUjJaXQn9tp4G-o"
