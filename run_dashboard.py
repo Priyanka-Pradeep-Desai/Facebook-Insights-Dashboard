@@ -292,9 +292,7 @@ fig_impressions.update_layout(
 st.plotly_chart(fig_impressions, use_container_width=True)
 
 # Chart 3: Top engaged posts
-import plotly.graph_objects as go
-
-# Step 1: Calculate Engagement Score
+# Step 1: Create engagement score
 weekly_df['Engagement_Score'] = (
     weekly_df['Total_Impressions'] +
     weekly_df['Total_Reach'] +
@@ -303,64 +301,52 @@ weekly_df['Engagement_Score'] = (
     weekly_df['Post_Clicks']
 )
 
-# Step 2: Get top posts (up to 10)
-top10 = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).reset_index(drop=True)
+# Step 2: Sort top 10
+top_engaged_posts = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).copy()
 
-# Step 3: Define triangle coordinates (up to 10 positions)
-triangle_positions = [
-    (2, 0),                          # 🥇 top post
-    (1, -1), (3, -1),                # 🥈 🥉
-    (0, -2), (2, -2), (4, -2),       # rank 4–6
-    (-1, -3), (1, -3), (3, -3), (5, -3)  # rank 7–10
-]
+# Step 3: Create horizontal bar chart with gradient coloring
+fig_bar = px.bar(
+    top_engaged_posts.iloc[::-1],  # Reverse so highest is on top
+    x='Engagement_Score',
+    y='Content',
+    orientation='h',
+    title='🏆 Top 10 Posts by Total Engagement',
+    color='Engagement_Score',
+    color_continuous_scale='Plasma',  # Try 'Inferno', 'Viridis', 'Turbo' too
+    labels={'Content': 'Post', 'Engagement_Score': 'Engagement Score'}
+)
 
-# Step 4: Match number of positions to number of posts
-triangle_positions = triangle_positions[:len(top10)]
-
-# Step 5: Create scatter plot
-fig = go.Figure()
-
-for i, (x, y) in enumerate(triangle_positions):
-    row = top10.loc[i]
-    rank = i + 1
-    emoji = "🥇" if rank == 1 else "🥈" if rank == 2 else "🥉" if rank == 3 else str(rank)
-
-    fig.add_trace(go.Scatter(
-        x=[x],
-        y=[y],
-        mode='markers+text',
-        marker=dict(size=38, color='#7E57C2', line=dict(color='white', width=1.5)),
-        text=[emoji],
-        textfont=dict(color='white', size=16),
-        textposition='middle center',
-        hovertemplate=(
-            f"<b>Post Rank:</b> {rank}<br>"
-            f"<b>Content:</b> {row['Content']}<br><br>"
-            f"👁 Impressions: {row['Total_Impressions']}<br>"
-            f"📢 Reach: {row['Total_Reach']}<br>"
-            f"👍 Likes: {row['Total_Like_Reactions']}<br>"
-            f"❤️ Loves: {row['Total_Love_Reactions']}<br>"
-            f"🖱 Clicks: {row['Post_Clicks']}<br>"
-            f"<b>Total Score:</b> {row['Engagement_Score']}<extra></extra>"
-        ),
-        showlegend=False
-    ))
-
-# Step 6: Layout styling
-fig.update_layout(
-    title='🔺 Top Posts in Triangle Format',
+# Step 4: Dark theme + styling
+fig_bar.update_layout(
     plot_bgcolor='rgba(20,20,20,1)',
     paper_bgcolor='rgba(30,30,30,1)',
     title_font=dict(size=20, color='#FFFFFF'),
     font=dict(color='#CCCCCC', size=13),
-    xaxis=dict(visible=False),
-    yaxis=dict(visible=False),
-    margin=dict(l=20, r=20, t=60, b=60),
-    height=600
+    margin=dict(l=100, r=40, t=80, b=60),
+    coloraxis_colorbar=dict(title='Engagement')
 )
 
-# Step 7: Display in Streamlit
-st.plotly_chart(fig, use_container_width=True)
+# Step 5: Detailed hover breakdown
+fig_bar.update_traces(
+    customdata=top_engaged_posts.iloc[::-1][[
+        'Total_Impressions',
+        'Total_Reach',
+        'Total_Like_Reactions',
+        'Total_Love_Reactions',
+        'Post_Clicks'
+    ]],
+    hovertemplate=(
+        '<b>Post:</b> %{y}<br>'
+        '👁 Impressions: %{customdata[0]}<br>'
+        '📢 Reach: %{customdata[1]}<br>'
+        '👍 Likes: %{customdata[2]}<br>'
+        '❤️ Loves: %{customdata[3]}<br>'
+        '🖱 Clicks: %{customdata[4]}<br>'
+        '<b>Total Score:</b> %{x}<extra></extra>'
+    )
+)
+# Step 6: Show in Streamlit
+st.plotly_chart(fig_bar, use_container_width=True)
 
 # Chart 4: Love vs Like Reactions - Pie Chart
 reaction_totals = pd.DataFrame({
