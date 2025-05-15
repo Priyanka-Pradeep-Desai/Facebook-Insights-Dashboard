@@ -226,14 +226,16 @@ fig_reactions.data[1].marker.color = custom_colors[1]  # Total_Loves → #FF758F
 
 # Chart layout styling
 fig_reactions.update_layout(
-    plot_bgcolor='rgba(0,0,0,0)',
-    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(20,20,20,1)',
+    paper_bgcolor='rgba(30,30,30,1)',
     title_font=dict(size=20, color='#FFFFFF'),
     font=dict(color='#CCCCCC'),
     legend_title_text='Reaction Type',
     xaxis=dict(title='Date', showgrid=False, tickangle=0),
     yaxis=dict(title='Count', gridcolor='rgba(255,255,255,0.05)'),
     legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1)
+    margin=dict(l=40, r=20, t=60, b=40),
+    bargap=0.2
 )
 
 st.plotly_chart(fig_reactions, use_container_width=True)
