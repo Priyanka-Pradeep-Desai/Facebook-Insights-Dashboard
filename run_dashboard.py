@@ -216,7 +216,7 @@ fig_reactions.update_traces(
     customdata=summary_df[['Post_Contents']].values,
     marker_line_width=2,
     marker_line_color='rgba(255,255,255,0.05)',
-    opacity=0.9
+    opacity=0.9,
     hovertemplate='%{x}<br><b>%{fullData.name}:</b> %{y}<br><b>Posts:</b><br>%{customdata[0]}<extra></extra>',
 )
 
