@@ -292,7 +292,10 @@ fig_impressions.update_layout(
 st.plotly_chart(fig_impressions, use_container_width=True)
 
 # Chart 3: Top engaged posts
-# Step 1: Compute engagement and get top 10
+import plotly.graph_objects as go
+import numpy as np
+
+# Step 1: Compute engagement & get top 10
 weekly_df['Engagement_Score'] = (
     weekly_df['Total_Impressions'] +
     weekly_df['Total_Reach'] +
@@ -300,23 +303,36 @@ weekly_df['Engagement_Score'] = (
     weekly_df['Total_Love_Reactions'] +
     weekly_df['Post_Clicks']
 )
-top_engaged = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).copy()
 
-# Step 2: Create Y positions like a triangle
-top_engaged = top_engaged.reset_index(drop=True)
-top_engaged['y'] = top_engaged.index[::-1]  # Highest score at top
+top10 = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).copy()
 
-# Step 3: Use horizontal bars with decreasing width
+# Step 2: Define triangle grid positions
+triangle_coords = {
+    1: [(2, 0)],
+    2: [(1, -1), (3, -1)],
+    3: [(0, -2), (2, -2), (4, -2)],
+    4: [(1, -3), (2, -3), (3, -3), (2, -4)]  # Fitting extra in lower row
+}
+positions = []
+for level in triangle_coords.values():
+    positions.extend(level)
+
+# Only use as many coords as we have posts
+top10 = top10.reset_index(drop=True)
+positions = positions[:len(top10)]
+
+# Step 3: Build figure
 fig = go.Figure()
 
-for idx, row in top_engaged.iterrows():
-    fig.add_trace(go.Bar(
-        y=[row['y']],
-        x=[row['Engagement_Score']],
-        orientation='h',
-        name='',
-        text=row['Content'],
-        marker_color='#7E57C2',
+for i, (x, y) in enumerate(positions):
+    row = top10.loc[i]
+    fig.add_trace(go.Scatter(
+        x=[x],
+        y=[y],
+        mode='markers+text',
+        marker=dict(size=30, color='#7E57C2'),
+        text=[f"{i+1}"],
+        textposition='middle center',
         hovertemplate=(
             f"<b>Post:</b> {row['Content']}<br>"
             f"👁 Impressions: {row['Total_Impressions']}<br>"
@@ -326,29 +342,24 @@ for idx, row in top_engaged.iterrows():
             f"🖱 Clicks: {row['Post_Clicks']}<br>"
             f"<b>Total Score:</b> {row['Engagement_Score']}<extra></extra>"
         ),
-        width=0.6 - (idx * 0.04)  # simulate tapering
+        showlegend=False
     ))
 
-# Step 4: Invert Y-axis to show triangle top-down
-fig.update_yaxes(
-    tickvals=top_engaged['y'],
-    ticktext=top_engaged['Content'],
-    autorange='reversed'
-)
-
-# Step 5: Layout styling
+# Step 4: Styling
 fig.update_layout(
-    title='🔺 Top 10 Posts Ranked in Triangle Form',
+    title='🔺 Top 10 Posts in Triangle Format',
     plot_bgcolor='rgba(20,20,20,1)',
     paper_bgcolor='rgba(30,30,30,1)',
     title_font=dict(size=20, color='#FFFFFF'),
     font=dict(color='#CCCCCC', size=13),
-    xaxis_title='Engagement Score',
-    yaxis_title='Post',
-    margin=dict(l=120, r=40, t=80, b=60),
-    showlegend=False
+    xaxis=dict(visible=False),
+    yaxis=dict(visible=False),
+    margin=dict(l=20, r=20, t=60, b=60),
+    height=500
 )
+
 st.plotly_chart(fig, use_container_width=True)
+
 
 # Chart 4: Love vs Like Reactions - Pie Chart
 reaction_totals = pd.DataFrame({
