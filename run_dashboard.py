@@ -518,7 +518,7 @@ if should_send_email_gsheet():
     try:
         sender_email = st.secrets["GMAIL_USER"]
         password = st.secrets["GMAIL_PASS"]
-        receiver_emails = ["priyankadesai1999@gmail.com", "priyankapradeepdesai@gmail.com"]
+        receiver_emails = ["priyankadesai1999@gmail.com", "tom.basey@gmail.com"]
 
         message = MIMEMultipart("alternative")
         message["Subject"] = "📊 Facebook Dashboard Link"
