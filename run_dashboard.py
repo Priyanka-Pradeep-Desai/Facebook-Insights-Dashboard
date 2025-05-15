@@ -447,7 +447,7 @@ combined = pd.concat([like_agg, love_agg], ignore_index=True)
 sunburst_data = []
 
 # Root
-sunburst_data.append({'Label': 'Reactions', 'Parent': '', 'Value': 0})
+sunburst_data.append({'Label': 'Reactions', 'Parent': '', 'Value': 1})
 
 # First level
 sunburst_data.append({'Label': 'Like', 'Parent': 'Reactions', 'Value': like_df['Engagement_Score'].sum()})
