@@ -22,7 +22,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
 # Step 2: Open the spreadsheet by URL
-SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1apkZJsJHEd1HfDoHBAx9cPM-BmJxjIRiagB_F5KehHo/edit"
+SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1g31P464gcNrCyjCvEr9rd66gfGmEGZYyPtHPPSDtZdQ/edit"
 DASHBOARD_URL = "https://facebook-insights-dashboard-elxpadltekfwuqpbur66q2.streamlit.app/"
 TAB_NAME = "Facebook: Post Insights"
 
@@ -43,21 +43,20 @@ except Exception as e:
     st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
 
-# Step 4: Filter last complete week (Sunday to Saturday)
+# Step 4: Filter last 10 days (including today)
 today = pd.Timestamp.today().normalize()
-last_sunday = today - pd.to_timedelta(today.weekday() + 1, unit='D')
-previous_sunday = last_sunday - pd.Timedelta(days=7)
-last_saturday = last_sunday - pd.Timedelta(days=1)
+start_date = today - pd.Timedelta(days=9)  # includes today as 1 of the 10 days
+end_date = today
 
-weekly_df = df[(df['Created_Time'].dt.date >= previous_sunday.date()) &
-               (df['Created_Time'].dt.date <= last_saturday.date())]
+weekly_df = df[(df['Created_Time'].dt.date >= start_date.date()) &
+               (df['Created_Time'].dt.date <= end_date.date())]
 
 if weekly_df.empty:
-    st.warning("⚠️ No data available for the last complete week.")
+    st.warning("⚠️ No data available for the last 10 days.")
     st.stop()
 
 # Step 5: Dashboard Title
-week_range = f"{previous_sunday.date()} to {last_saturday.date()}"
+week_range = f"{start_date.date()} to {end_date.date()}"
 # Step 5: Dark mode-friendly dashboard title
 st.markdown(f"""
     <div style='text-align: center;'>
