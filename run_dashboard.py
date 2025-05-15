@@ -437,30 +437,33 @@ def get_score_by_level(df, reaction_name):
 
 outer_data = get_score_by_level(like_df, 'Like') + get_score_by_level(love_df, 'Love')
 outer_labels, outer_values = zip(*outer_data)
-# Updated outer_colors using shade-based mapping
+
+# Define shade-based color scheme
 like_shades = {
-    'High': '#0D47A1',
-    'Moderate': '#42A5F5',
-    'Low': '#BBDEFB'
+    'High': '#0D47A1',      # dark blue
+    'Moderate': '#42A5F5',  # medium blue
+    'Low': '#BBDEFB'        # light blue
 }
 love_shades = {
-    'High': '#B71C1C',
-    'Moderate': '#EF5350',
-    'Low': '#FFCDD2'
+    'High': '#B71C1C',      # dark red
+    'Moderate': '#EF5350',  # medium red
+    'Low': '#FFCDD2'        # light red
 }
 
+# Assign outer segment colors based on label content
 outer_colors = []
 for label in outer_labels:
     if label.startswith('Like'):
-        for level, color in like_shades.items():
+        for level in like_shades:
             if level in label:
-                outer_colors.append(color)
+                outer_colors.append(like_shades[level])
                 break
     elif label.startswith('Love'):
-        for level, color in love_shades.items():
+        for level in love_shades:
             if level in label:
-                outer_colors.append(color)
+                outer_colors.append(love_shades[level])
                 break
+
 
 for label in outer_labels:
     if 'High' in label:
