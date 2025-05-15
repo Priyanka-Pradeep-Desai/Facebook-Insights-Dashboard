@@ -292,32 +292,47 @@ fig_impressions.update_layout(
 )
 st.plotly_chart(fig_impressions, use_container_width=True)
 
-# Chart 3: Top 10 Posts by Clicks - Sort and reverse for treemap logic
-top_posts = weekly_df.sort_values(by='Post_Clicks', ascending=False).head(10)
-top_posts['Post_Clicks'] = top_posts['Post_Clicks'].replace(0, 0.1)
-
-fig3 = px.treemap(
-    top_posts,
-    path=[px.Constant('Top Posts'), 'Content'],
-    values='Post_Clicks',
-    title='🔥 Top 10 Posts by Clicks (Treemap)',
-    color_discrete_sequence=['#7E57C2']
+# Chart 3: Top engaged posts
+# Step 1: Create a composite engagement score
+weekly_df['Engagement_Score'] = (
+    weekly_df['Total_Impressions'] +
+    weekly_df['Total_Reach'] +
+    weekly_df['Total_Likes'] +
+    weekly_df['Total_Loves'] +
+    weekly_df['Post_Clicks']
 )
 
-# Update layout for dark theme and better spacing
-fig3.update_layout(
+# Step 2: Sort and select top 10 posts by engagement
+top_engaged_posts = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).copy()
+
+# Step 3: Build the funnel chart
+fig_funnel = px.funnel(
+    top_engaged_posts,
+    y='Content',
+    x='Engagement_Score',
+    title='🏆 Top 10 Posts by Total Engagement',
+    color_discrete_sequence=['#AB47BC']  # Deep purple for elegance
+)
+
+# Step 4: Layout for dark theme
+fig_funnel.update_layout(
     plot_bgcolor='rgba(20,20,20,1)',
     paper_bgcolor='rgba(30,30,30,1)',
     title_font=dict(size=20, color='#FFFFFF'),
     font=dict(color='#CCCCCC'),
-    margin=dict(l=40, r=40, t=60, b=40)
+    margin=dict(l=100, r=40, t=80, b=60),
+    xaxis_title='Total Engagement Score',
+    yaxis_title='Post',
 )
-# Customize hover info
-fig3.update_traces(
-    hovertemplate='<b>Post:</b> %{label}<br><b>Clicks:</b> %{value}<extra></extra>',
-    textinfo='label+value'
+
+# Step 5: Hover customization
+fig_funnel.update_traces(
+    hovertemplate='<b>Post:</b> %{y}<br><b>Engagement Score:</b> %{x}<extra></extra>'
 )
-st.plotly_chart(fig3, use_container_width=True)
+
+# Step 6: Display in Streamlit
+st.plotly_chart(fig_funnel, use_container_width=True)
+
 
 # Chart 4: Love vs Like Reactions - Pie Chart
 reaction_totals = pd.DataFrame({
