@@ -410,65 +410,46 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- Chart 4: Nested Donut – Reaction Breakdown by Engagement Quality ---
-from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
-# Inner data
-inner_labels = ["Like", "Love"]
-inner_values = [3, 1]
-inner_colors = ["#1877F2", "#D81B60"]
+# Data: inner (reaction), outer (reaction + engagement)
+labels = [
+    "Reactions",         # Root
+    "Like", "Love",      # Inner ring
+    "Like - Low", "Like - Moderate",  # Like engagement
+    "Love - Moderate"               # Love engagement
+]
+parents = [
+    "",                 # Reactions has no parent
+    "Reactions", "Reactions",     # Like and Love under Reactions
+    "Like", "Like",               # Engagement under Like
+    "Love"                        # Engagement under Love
+]
+values = [
+    4,        # Total reactions
+    3, 1,     # 3 Like posts, 1 Love post
+    27, 100,  # Engagement scores for Like
+    39        # Engagement score for Love
+]
+colors = [
+    "#111111",      # Reactions center (hidden)
+    "#1877F2", "#D81B60",      # Like blue, Love red
+    "#BBDEFB", "#42A5F5",      # Like engagement (light to darker)
+    "#EF5350"                 # Love engagement (moderate red)
+]
 
-# Outer segments (engagement score per reaction type)
-like_labels = ["Like - Low", "Like - Moderate"]
-like_values = [27, 100]
-like_colors = ["#BBDEFB", "#42A5F5"]
+fig = go.Figure(go.Sunburst(
+    labels=labels,
+    parents=parents,
+    values=values,
+    branchvalues="total",
+    marker=dict(colors=colors),
+    insidetextorientation='radial',
+    hovertemplate='<b>%{label}</b><br>Value: %{value}<extra></extra>'
+))
 
-love_labels = ["Love - Moderate"]
-love_values = [39]
-love_colors = ["#EF5350"]
-
-# Plotly figure
-fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'domain'}, {'type': 'domain'}]])
-
-# Center donut (combined Like + Love)
-fig.add_trace(go.Pie(
-    labels=inner_labels,
-    values=inner_values,
-    hole=0.5,
-    marker=dict(colors=inner_colors),
-    textinfo='label+value',
-    hovertemplate='<b>%{label}</b><br>Posts: %{value}<extra></extra>',
-    domain=dict(x=[0.25, 0.75], y=[0.25, 0.75]),  # Centered
-    showlegend=False
-), row=1, col=1)
-
-# Left outer donut (Like engagement)
-fig.add_trace(go.Pie(
-    labels=like_labels,
-    values=like_values,
-    hole=0.72,
-    marker=dict(colors=like_colors),
-    textinfo='label+value',
-    hovertemplate='<b>%{label}</b><br>Score: %{value}<extra></extra>',
-    domain=dict(x=[0, 0.5], y=[0, 1]),
-    showlegend=False
-), row=1, col=1)
-
-# Right outer donut (Love engagement)
-fig.add_trace(go.Pie(
-    labels=love_labels,
-    values=love_values,
-    hole=0.72,
-    marker=dict(colors=love_colors),
-    textinfo='label+value',
-    hovertemplate='<b>%{label}</b><br>Score: %{value}<extra></extra>',
-    domain=dict(x=[0.5, 1.0], y=[0, 1]),
-    showlegend=False
-), row=1, col=2)
-
-# Layout
 fig.update_layout(
-    title_text="🍩 Final Nested Donut: Properly Segmented Reaction vs Engagement",
+    title_text="🍩 True Nested Donut: Reaction vs Engagement",
     paper_bgcolor='rgba(30,30,30,1)',
     plot_bgcolor='rgba(20,20,20,1)',
     font=dict(color='#CCCCCC', size=13),
@@ -476,6 +457,7 @@ fig.update_layout(
 )
 
 st.plotly_chart(fig, use_container_width=True)
+
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
