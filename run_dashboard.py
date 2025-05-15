@@ -410,32 +410,46 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # Nested Donut Pie Chart: Engagement Breakdown
-fig_donut = go.Figure(go.Sunburst(
-    labels=['Clicks', 'Reactions', 'Post Clicks', 'Like Reactions', 'Love Reactions'],
-    parents=['', '', 'Clicks', 'Reactions', 'Reactions'],
-    values=[total_clicks, total_reactions, total_clicks, total_likes, total_loves],
-    branchvalues="total",
-    marker=dict(
-        colors=[
-            '#2C3E50',       # Inner Clicks
-            '#424242',       # Inner Reactions
-            '#5DADE2',       # Post Clicks (soft blue)
-            '#1877F2',       # Like Reactions (Facebook blue)
-            '#D81B60'        # Love Reactions (magenta)
-        ],
-        line=dict(color='rgba(255,255,255,0.1)', width=2)
-    ),
-    hovertemplate='<b>%{label}</b><br>Value: %{value}<extra></extra>',
+fig_donut = go.Figure()
+
+# Inner donut (bigger hole to simulate spacing)
+fig_donut.add_trace(go.Pie(
+    values=[total_clicks, total_reactions],
+    labels=["Clicks", "Reactions"],
+    name="Engagement Type",
+    hole=0.55,
+    marker=dict(colors=['#2C3E50', '#424242']),
+    direction='clockwise',
+    sort=False,
+    textinfo='label+value',
+    textposition='inside',
     insidetextorientation='radial',
-    maxdepth=2
+    domain={'x': [0.15, 0.85], 'y': [0.15, 0.85]}
 ))
 
+# Outer donut (covers full ring)
+fig_donut.add_trace(go.Pie(
+    values=[total_clicks, total_likes, total_loves],
+    labels=["Post Clicks", "Like Reactions", "Love Reactions"],
+    name="Detailed Breakdown",
+    hole=0.35,
+    marker=dict(colors=['#5DADE2', '#1877F2', '#D81B60']),
+    direction='clockwise',
+    sort=False,
+    textinfo='label+value',
+    textposition='inside',
+    insidetextorientation='radial',
+    domain={'x': [0.05, 0.95], 'y': [0.05, 0.95]}
+))
+
+# Unified layout
 fig_donut.update_layout(
-    margin=dict(t=20, l=10, r=10, b=20),
+    showlegend=False,
+    margin=dict(t=40, b=40, l=0, r=0),
     paper_bgcolor='rgba(15,15,15,1)',
     plot_bgcolor='rgba(15,15,15,1)',
-    font=dict(color='#CCCCCC', family='Segoe UI'),
-    uniformtext=dict(minsize=12, mode='hide')
+    font=dict(color='#DDDDDD', family='Segoe UI'),
+    annotations=[dict(text='Engagement', x=0.5, y=0.5, font_size=20, showarrow=False)]
 )
 
 st.plotly_chart(fig_donut, use_container_width=True)
