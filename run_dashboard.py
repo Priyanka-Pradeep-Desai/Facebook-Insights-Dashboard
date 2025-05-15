@@ -293,6 +293,8 @@ fig_impressions.update_layout(
 st.plotly_chart(fig_impressions, use_container_width=True)
 
 # Chart 3: Top engaged posts
+st.write("weekly_df columns:", weekly_df.columns.tolist())
+
 # Step 1: Create a composite engagement score
 weekly_df['Engagement_Score'] = (
     weekly_df['Total_Impressions'] +
