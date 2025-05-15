@@ -293,9 +293,8 @@ st.plotly_chart(fig_impressions, use_container_width=True)
 
 # Chart 3: Top engaged posts
 import plotly.graph_objects as go
-import numpy as np
 
-# Step 1: Compute engagement & get top 10
+# Step 1: Compute engagement
 weekly_df['Engagement_Score'] = (
     weekly_df['Total_Impressions'] +
     weekly_df['Total_Reach'] +
@@ -304,37 +303,35 @@ weekly_df['Engagement_Score'] = (
     weekly_df['Post_Clicks']
 )
 
-top10 = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).copy()
+# Step 2: Get top 10
+top10 = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).reset_index(drop=True)
 
-# Step 2: Define triangle grid positions
-triangle_coords = {
-    1: [(2, 0)],
-    2: [(1, -1), (3, -1)],
-    3: [(0, -2), (2, -2), (4, -2)],
-    4: [(1, -3), (2, -3), (3, -3), (2, -4)]  # Fitting extra in lower row
-}
-positions = []
-for level in triangle_coords.values():
-    positions.extend(level)
+# Step 3: Define triangle layout (manual positions)
+triangle_positions = [
+    (2, 0),                     # row 1 (top)
+    (1, -1), (3, -1),           # row 2
+    (0, -2), (2, -2), (4, -2),  # row 3
+    (-1, -3), (1, -3), (3, -3), (5, -3)  # row 4
+]
 
-# Only use as many coords as we have posts
-top10 = top10.reset_index(drop=True)
-positions = positions[:len(top10)]
-
-# Step 3: Build figure
+# Step 4: Plot using Scatter
 fig = go.Figure()
 
-for i, (x, y) in enumerate(positions):
+for i, (x, y) in enumerate(triangle_positions):
     row = top10.loc[i]
+    rank = i + 1
+    emoji = "🥇" if rank == 1 else "🥈" if rank == 2 else "🥉" if rank == 3 else str(rank)
+
     fig.add_trace(go.Scatter(
         x=[x],
         y=[y],
         mode='markers+text',
-        marker=dict(size=30, color='#7E57C2'),
-        text=[f"{i+1}"],
+        marker=dict(size=35, color='#7E57C2'),
+        text=[emoji],
         textposition='middle center',
         hovertemplate=(
-            f"<b>Post:</b> {row['Content']}<br>"
+            f"<b>Post Rank:</b> {rank}<br>"
+            f"<b>Content:</b> {row['Content']}<br><br>"
             f"👁 Impressions: {row['Total_Impressions']}<br>"
             f"📢 Reach: {row['Total_Reach']}<br>"
             f"👍 Likes: {row['Total_Like_Reactions']}<br>"
@@ -345,7 +342,7 @@ for i, (x, y) in enumerate(positions):
         showlegend=False
     ))
 
-# Step 4: Styling
+# Step 5: Layout styling
 fig.update_layout(
     title='🔺 Top 10 Posts in Triangle Format',
     plot_bgcolor='rgba(20,20,20,1)',
@@ -355,11 +352,10 @@ fig.update_layout(
     xaxis=dict(visible=False),
     yaxis=dict(visible=False),
     margin=dict(l=20, r=20, t=60, b=60),
-    height=500
+    height=600
 )
 
 st.plotly_chart(fig, use_container_width=True)
-
 
 # Chart 4: Love vs Like Reactions - Pie Chart
 reaction_totals = pd.DataFrame({
