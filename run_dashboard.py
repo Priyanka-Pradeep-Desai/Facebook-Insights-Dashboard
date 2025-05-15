@@ -410,8 +410,19 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- Chart 4: Nested Donut – Reaction Breakdown by Engagement Quality ---
+# Step 1: Define new weighted engagement score
+def compute_kpi(row):
+    return (
+        row['Post_Clicks'] * 0.4 +
+        row['Total_Like_Reactions'] * 0.2 +
+        row['Total_Love_Reactions'] * 0.3 +
+        row['Total_Impressions'] * 0.05 +
+        row['Total_Reach'] * 0.05
+    )
 
-# Step 1: Define engagement category logic
+weekly_df['Reaction_Score'] = weekly_df.apply(compute_kpi, axis=1)
+
+# Step 2: Classify engagement as before
 def classify_engagement(row):
     if row['Post_Clicks'] > row['Total_Reactions']:
         return 'High Engagement'
@@ -422,68 +433,45 @@ def classify_engagement(row):
 
 weekly_df['Engagement_Quality'] = weekly_df.apply(classify_engagement, axis=1)
 
-# Step 2: Create all 6 combinations with fallback to 0
-engagement_levels = ['High Engagement', 'Moderate Engagement', 'Low Engagement']
+# Step 3: Melt Like and Love reactions separately
+like_melted = weekly_df[weekly_df['Total_Like_Reactions'] > 0][['Engagement_Quality', 'Total_Like_Reactions']]
+like_melted = like_melted.groupby('Engagement_Quality')['Total_Like_Reactions'].sum().reset_index()
+like_melted['Reaction_Type'] = 'Like'
+like_melted.columns = ['Engagement_Quality', 'Value', 'Reaction_Type']
 
-like_breakdown = (
-    weekly_df[weekly_df['Total_Like_Reactions'] > 0]
-    .groupby('Engagement_Quality')['Total_Like_Reactions']
-    .sum()
-    .reindex(engagement_levels, fill_value=0)
-    .reset_index()
-    .assign(Parent='Like')
-)
+love_melted = weekly_df[weekly_df['Total_Love_Reactions'] > 0][['Engagement_Quality', 'Total_Love_Reactions']]
+love_melted = love_melted.groupby('Engagement_Quality')['Total_Love_Reactions'].sum().reset_index()
+love_melted['Reaction_Type'] = 'Love'
+love_melted.columns = ['Engagement_Quality', 'Value', 'Reaction_Type']
 
-love_breakdown = (
-    weekly_df[weekly_df['Total_Love_Reactions'] > 0]
-    .groupby('Engagement_Quality')['Total_Love_Reactions']
-    .sum()
-    .reindex(engagement_levels, fill_value=0)
-    .reset_index()
-    .assign(Parent='Love')
-)
+# Step 4: Combine and prepare for donut chart
+reaction_df = pd.concat([like_melted, love_melted], ignore_index=True)
 
-like_breakdown.columns = ['Label', 'Value', 'Parent']
-love_breakdown.columns = ['Label', 'Value', 'Parent']
+# Inner layer totals
+inner_layer = reaction_df.groupby('Reaction_Type')['Value'].sum().reset_index()
+inner_layer['Engagement_Quality'] = 'Total'
 
-# Step 3: Like & Love totals
-total_likes = like_breakdown['Value'].sum()
-total_loves = love_breakdown['Value'].sum()
+# Merge for outer ring (Reaction Type + Engagement Category)
+full_donut_df = pd.concat([reaction_df, inner_layer], ignore_index=True)
 
-reaction_totals = pd.DataFrame({
-    'Label': ['Like', 'Love'],
-    'Value': [total_likes, total_loves],
-    'Parent': ['All Reactions', 'All Reactions']
-})
-
-# Step 4: Root node
-root = pd.DataFrame([{
-    'Label': 'All Reactions',
-    'Value': total_likes + total_loves,
-    'Parent': ''
-}])
-
-# Step 5: Combine full dataset
-sunburst_df_fixed = pd.concat([root, reaction_totals, like_breakdown, love_breakdown], ignore_index=True)
-
-# Step 6: Chart
-fig_nested_donut = px.sunburst(
-    sunburst_df_fixed,
-    names='Label',
-    parents='Parent',
+# Step 5: Create donut chart
+fig_donut = px.sunburst(
+    full_donut_df,
+    names='Engagement_Quality',
+    parents='Reaction_Type',
     values='Value',
-    color='Label',
+    color='Engagement_Quality',
     color_discrete_map={
-        'All Reactions': '#444444',
         'Like': '#1877F2',
         'Love': '#D81B60',
         'High Engagement': '#00C49F',
         'Moderate Engagement': '#FFBB28',
-        'Low Engagement': '#FF4C4C'
+        'Low Engagement': '#FF4C4C',
+        'Total': '#444444'
     }
 )
 
-fig_nested_donut.update_layout(
+fig_donut.update_layout(
     margin=dict(t=50, b=40, l=60, r=60),
     paper_bgcolor='rgba(30,30,30,1)',
     plot_bgcolor='rgba(20,20,20,1)',
@@ -491,19 +479,20 @@ fig_nested_donut.update_layout(
     hoverlabel=dict(bgcolor='rgba(50,50,50,0.9)', font_size=13)
 )
 
-# Step 7: Render in Streamlit
+# Step 6: Streamlit render
 st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-            🧠 Reaction Breakdown by Engagement Quality
+            🍩 Engagement Quality Distribution by Reaction Type
         </span>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-st.plotly_chart(fig_nested_donut, use_container_width=True)
+st.plotly_chart(fig_donut, use_container_width=True)
+
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
