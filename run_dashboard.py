@@ -210,13 +210,13 @@ fig_reactions = px.bar(
     title="💬 Daily Reaction Type Breakdown",
     labels={"value": "Count", "variable": "Reaction Type", "Created_Date": "Date"},
     barmode='group',
-)
-
+    
 # Add hover data
 fig_reactions.update_traces(
     customdata=summary_df[['Post_Contents']].values,
-    marker_line_width=1.5,
-    marker_line_color='rgba(255,255,255,0.2)',
+    marker_line_width=2,
+    marker_line_color='rgba(255,255,255,0.05)',
+    opacity=0.9
     hovertemplate='%{x}<br><b>%{fullData.name}:</b> %{y}<br><b>Posts:</b><br>%{customdata[0]}<extra></extra>',
 )
 
@@ -228,16 +228,15 @@ fig_reactions.data[1].marker.color = custom_colors[1]  # Total_Loves → #FF758F
 fig_reactions.update_layout(
     plot_bgcolor='rgba(20,20,20,1)',
     paper_bgcolor='rgba(30,30,30,1)',
-    title_font=dict(size=20, color='#FFFFFF'),
-    font=dict(color='#CCCCCC'),
+    title_font=dict(size=22, color='#FFFFFF'),
+    font=dict(family="Segoe UI, sans-serif", size=14, color='#CCCCCC'),
     legend_title_text='Reaction Type',
     xaxis=dict(title='Date', showgrid=False, tickangle=0),
     yaxis=dict(title='Count', gridcolor='rgba(255,255,255,0.05)'),
-    legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
-    margin=dict(l=40, r=20, t=60, b=40),  # <-- fixed comma here
-    bargap=0.2
+    legend=dict(orientation='h', yanchor='bottom', y=1.1, xanchor='right', x=1),
+    margin=dict(l=60, r=40, t=80, b=60),
+    bargap=0.35
 )
-
 st.plotly_chart(fig_reactions, use_container_width=True)
 
 # Chart 2: Total Impressions vs Reach (show both even if same)
