@@ -209,7 +209,7 @@ fig_reactions = px.bar(
     y=['Total_Likes', 'Total_Loves'],
     title="💬 Daily Reaction Type Breakdown",
     labels={"value": "Count", "variable": "Reaction Type", "Created_Date": "Date"},
-    barmode='group',
+    barmode='group')
     
 # Add hover data
 fig_reactions.update_traces(
