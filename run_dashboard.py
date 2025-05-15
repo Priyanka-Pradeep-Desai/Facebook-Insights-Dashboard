@@ -185,22 +185,34 @@ except Exception as e:
 # Add correct weekday name and index in pandas (timezone-safe and reliable)
 summary_df['Day_Name'] = pd.to_datetime(summary_df['Created_Date']).dt.day_name()
 summary_df['Day_Of_Week'] = pd.to_datetime(summary_df['Created_Date']).dt.weekday  # 0=Monday, 6=Sunday
-summary_df
 
 # Chart 1: Daily Reaction Types Breakdown
 custom_colors = ['#1877F2', '#D81B60']
 
 # Add post content per day to summary_df
 weekly_df['Created_Date'] = weekly_df['Created_Time'].dt.date
-contents_by_day = (
-    weekly_df.groupby('Created_Date')['Content']
+
+# Posts that got likes
+likes_by_day = (
+    weekly_df[weekly_df['Total_Like_Reactions'] > 0]
+    .groupby('Created_Date')['Content']
     .apply(lambda x: '<br>'.join(x))
     .reset_index()
-    .rename(columns={'Content': 'Post_Contents'})
+    .rename(columns={'Content': 'Like_Posts'})
+)
+
+# Posts that got loves
+loves_by_day = (
+    weekly_df[weekly_df['Total_Love_Reactions'] > 0]
+    .groupby('Created_Date')['Content']
+    .apply(lambda x: '<br>'.join(x))
+    .reset_index()
+    .rename(columns={'Content': 'Love_Posts'})
 )
 
 summary_df['Created_Date'] = pd.to_datetime(summary_df['Created_Date']).dt.date
-summary_df = summary_df.merge(contents_by_day, on='Created_Date', how='left')
+summary_df = summary_df.merge(likes_by_day, on='Created_Date', how='left')
+summary_df = summary_df.merge(loves_by_day, on='Created_Date', how='left')
 
 # Create bar chart
 fig_reactions = px.bar(
@@ -212,13 +224,11 @@ fig_reactions = px.bar(
     barmode='group')
     
 # Add hover data
-fig_reactions.update_traces(
-    customdata=summary_df[['Post_Contents']].values,
-    marker_line_width=2,
-    marker_line_color='rgba(255,255,255,0.05)',
-    opacity=0.8,
-    hovertemplate='%{x}<br><b>%{fullData.name}:</b> %{y}<br><b>Posts:</b><br>%{customdata[0]}<extra></extra>',
-)
+fig_reactions.data[0].customdata = summary_df[['Like_Posts']].values  # For Total_Likes
+fig_reactions.data[0].hovertemplate = '%{x}<br><b>Total_Likes:</b> %{y}<br><b>Liked Posts:</b><br>%{customdata[0]}<extra></extra>'
+
+fig_reactions.data[1].customdata = summary_df[['Love_Posts']].values  # For Total_Loves
+fig_reactions.data[1].hovertemplate = '%{x}<br><b>Total_Loves:</b> %{y}<br><b>Loved Posts:</b><br>%{customdata[0]}<extra></extra>'
 
 # Assign your custom colors to each trace
 fig_reactions.data[0].marker.color = custom_colors[0]  # Total_Likes → #C9184A
