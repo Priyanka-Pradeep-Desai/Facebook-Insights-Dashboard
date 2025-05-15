@@ -22,7 +22,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
 # Step 2: Open the spreadsheet by URL
-SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1g31P464gcNrCyjCvEr9rd66gfGmEGZYyPtHPPSDtZdQ/edit"
+SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1apkZJsJHEd1HfDoHBAx9cPM-BmJxjIRiagB_F5KehHo/edit"
 DASHBOARD_URL = "https://facebook-insights-dashboard-elxpadltekfwuqpbur66q2.streamlit.app/"
 TAB_NAME = "Facebook: Post Insights"
 
@@ -251,7 +251,9 @@ st.plotly_chart(fig_reactions, use_container_width=True)
 
 # Chart 2: Total Impressions vs Reach (Daily Aggregated with Hover)
 
-# Step 1: Aggregate impressions, reach, and combine post content per day
+# Chart 2: Total Impressions vs Reach (Daily Aggregated with Date Labels)
+
+# Step 1: Aggregate daily impressions, reach, and combine post content
 daily_summary = (
     weekly_df
     .groupby(weekly_df['Created_Time'].dt.date)
@@ -264,12 +266,15 @@ daily_summary = (
     .rename(columns={'Created_Time': 'Date', 'Content': 'Post_Contents'})
 )
 
-# Step 2: Create figure
+# Step 2: Add readable date labels (e.g., "May 7, 2025") for x-axis
+daily_summary['Date_Label'] = pd.to_datetime(daily_summary['index']).dt.strftime('%b %d, %Y')
+
+# Step 3: Create figure
 fig_impressions = go.Figure()
 
-# Step 3: Invisible trace to show all post content in hover
+# Step 4: Invisible trace to show post content in unified hover
 fig_impressions.add_trace(go.Scatter(
-    x=daily_summary['Date'],
+    x=daily_summary['Date_Label'],
     y=[0.001] * len(daily_summary),
     mode='markers',
     name='',
@@ -280,9 +285,9 @@ fig_impressions.add_trace(go.Scatter(
     hoverlabel=dict(namelength=0)
 ))
 
-# Step 4: Impressions line
+# Step 5: Impressions line
 fig_impressions.add_trace(go.Scatter(
-    x=daily_summary['Date'],
+    x=daily_summary['Date_Label'],
     y=daily_summary['Total_Impressions'],
     mode='lines+markers',
     name='📊 Impressions',
@@ -291,9 +296,9 @@ fig_impressions.add_trace(go.Scatter(
     hovertemplate='<b>Impressions:</b> %{y}<extra></extra>'
 ))
 
-# Step 5: Reach line
+# Step 6: Reach line
 fig_impressions.add_trace(go.Scatter(
-    x=daily_summary['Date'],
+    x=daily_summary['Date_Label'],
     y=daily_summary['Total_Reach'],
     mode='lines+markers',
     name='👥 Reach',
@@ -302,7 +307,7 @@ fig_impressions.add_trace(go.Scatter(
     hovertemplate='<b>Reach:</b> %{y}<extra></extra>'
 ))
 
-# Step 6: Layout styling
+# Step 7: Layout styling
 fig_impressions.update_layout(
     title='📈 Total Impressions vs Reach (Hover shows both)',
     xaxis_title='Date',
@@ -315,9 +320,8 @@ fig_impressions.update_layout(
     margin=dict(l=60, r=40, t=80, b=60),
     legend=dict(orientation='h', yanchor='bottom', y=1.1, xanchor='right', x=1)
 )
-# Step 7: Show chart in Streamlit
+# Step 8: Show chart in Streamlit
 st.plotly_chart(fig_impressions, use_container_width=True)
-
 
 # Chart 3: Top engaged posts
 # Step 1: Create engagement score
