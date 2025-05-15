@@ -214,12 +214,21 @@ summary_df['Created_Date'] = pd.to_datetime(summary_df['Created_Date']).dt.date
 summary_df = summary_df.merge(likes_by_day, on='Created_Date', how='left')
 summary_df = summary_df.merge(loves_by_day, on='Created_Date', how='left')
 
+st.markdown(
+    """
+    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
+        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
+            💬 Daily Reaction Type Breakdown
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 # Create bar chart
 fig_reactions = px.bar(
     summary_df,
     x='Created_Date',
     y=['Total_Likes', 'Total_Loves'],
-    title=" 💬 Daily Reaction Type Breakdown",
     labels={"value": "Count", "variable": "Reaction Type", "Created_Date": "Date"},
     barmode='group')
     
