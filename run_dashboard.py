@@ -532,7 +532,7 @@ st.markdown(f"""
     color: #FFFFFF;
     font-size: 16px;
     margin-top: 30px;
-    margin-bottom: 30px;
+    margin-bottom: 15px;
     text-align: center;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
 }}
