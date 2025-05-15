@@ -43,20 +43,17 @@ except Exception as e:
     st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
 
-# Step 4: Filter last 10 days (including today)
-today = pd.Timestamp.today().normalize()
-start_date = today - pd.Timedelta(days=9)  # includes today as 1 of the 10 days
+# Step 4: Filter last 10 calendar days (including today)
+today = pd.Timestamp.now().normalize()
+start_date = today - pd.Timedelta(days=9)  # Includes today as the 10th day
 end_date = today
 
-weekly_df = df[(df['Created_Time'].dt.date >= start_date.date()) &
-               (df['Created_Time'].dt.date <= end_date.date())]
+weekly_df = df[(df['Created_Time'] >= start_date) & (df['Created_Time'] <= end_date)]
 
 if weekly_df.empty:
     st.warning("⚠️ No data available for the last 10 days.")
     st.stop()
-
-# Step 5: Dashboard Title
-week_range = f"{start_date.date()} to {end_date.date()}"
+    
 # Step 5: Dark mode-friendly dashboard title
 st.markdown(f"""
     <div style='text-align: center;'>
@@ -64,6 +61,8 @@ st.markdown(f"""
         <p style='font-size: 17px; color: #AAAAAA; margin-top: 4px;'>Week Range: <strong style='color: #FFFFFF;'>{week_range}</strong></p>
     </div>
 """, unsafe_allow_html=True)
+
+week_range = f"{start_date.date()} to {end_date.date()}"
 
 # Step 6: KPI Metrics
 total_clicks = int(weekly_df['Post_Clicks'].sum())
