@@ -410,8 +410,6 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- Chart 4: Nested Donut – Reaction Breakdown by Engagement Quality ---
-# 🧼 Clean Concentric Donut using Score Buckets
-
 # Step 1: Classify based on Engagement Score
 def score_bucket(score):
     if score >= 67:
@@ -440,11 +438,31 @@ def get_score_by_level(df, reaction_name):
 outer_data = get_score_by_level(like_df, 'Like') + get_score_by_level(love_df, 'Love')
 outer_labels, outer_values = zip(*outer_data)
 outer_colors = []
-color_map = {
-    'High': '#00C49F',
-    'Moderate': '#FFBB28',
-    'Low': '#FF4C4C'
+# Updated outer_colors using shade-based mapping
+like_shades = {
+    'High': '#0D47A1',
+    'Moderate': '#42A5F5',
+    'Low': '#BBDEFB'
 }
+love_shades = {
+    'High': '#B71C1C',
+    'Moderate': '#EF5350',
+    'Low': '#FFCDD2'
+}
+
+outer_colors = []
+for label in outer_labels:
+    if label.startswith('Like'):
+        for level, color in like_shades.items():
+            if level in label:
+                outer_colors.append(color)
+                break
+    elif label.startswith('Love'):
+        for level, color in love_shades.items():
+            if level in label:
+                outer_colors.append(color)
+                break
+
 for label in outer_labels:
     if 'High' in label:
         outer_colors.append(color_map['High'])
