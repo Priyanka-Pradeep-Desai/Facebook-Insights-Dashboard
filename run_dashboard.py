@@ -413,7 +413,7 @@ st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-             Nested Donut Pie Chart: Engagement Breakdown
+             👍 Nested Donut Pie Chart: Engagement Breakdown
         </span>
     </div>
     """,
