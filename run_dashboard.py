@@ -185,6 +185,7 @@ except Exception as e:
 # Add correct weekday name and index in pandas (timezone-safe and reliable)
 summary_df['Day_Name'] = pd.to_datetime(summary_df['Created_Date']).dt.day_name()
 summary_df['Day_Of_Week'] = pd.to_datetime(summary_df['Created_Date']).dt.weekday  # 0=Monday, 6=Sunday
+summary_df
 
 # Chart 1: Daily Reaction Types Breakdown
 custom_colors = ['#1877F2', '#D81B60']
@@ -449,6 +450,7 @@ st.markdown("""
 # Chart 5: Best Day to Post (by Impressions + Reach)
 summary_df['Engagement_Score'] = summary_df['Total_Impressions'] + summary_df['Total_Reach']
 best_day = summary_df.sort_values(by='Engagement_Score', ascending=False).iloc[0]['Day_Name']
+
 st.markdown(f"""
 <style>
 .best-day-box {{
