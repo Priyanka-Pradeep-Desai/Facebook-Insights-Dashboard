@@ -437,7 +437,6 @@ def get_score_by_level(df, reaction_name):
 
 outer_data = get_score_by_level(like_df, 'Like') + get_score_by_level(love_df, 'Love')
 outer_labels, outer_values = zip(*outer_data)
-outer_colors = []
 # Updated outer_colors using shade-based mapping
 like_shades = {
     'High': '#0D47A1',
