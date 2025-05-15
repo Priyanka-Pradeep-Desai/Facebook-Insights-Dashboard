@@ -366,22 +366,23 @@ summary_df['Engagement_Score'] = summary_df['Total_Impressions'] + summary_df['T
 best_day = summary_df.sort_values(by='Engagement_Score', ascending=False).iloc[0]['Day_Name']
 st.info(f"📆 Best day to post this week based on Impressions + Reach: **{best_day}**")
 
-# Clickable Post Table (Sorted by Clicks)
+# 🔝 Top Clicked Posts Table (Clean & Professional)
 st.subheader("🖱️ Top Clicked Posts")
 
-# Step 1: Select and sort relevant data
+# Step 1: Prepare and sort data
 link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Permanent_Link']].copy()
 link_table = link_table.sort_values(by='Post_Clicks', ascending=False)
+link_table['Content'] = link_table['Content'].replace({r'\n': ' '}, regex=True)
 
-# Step 2: Make links clickable
+# Step 2: Format links (no emoji, clean color)
 link_table['Permanent_Link'] = link_table['Permanent_Link'].apply(
-    lambda url: f'<a href="{url}" target="_blank">🔗 View Post</a>'
+    lambda url: f'<a href="{url}" target="_blank" style="color:#4FC3F7; text-decoration:none;">View</a>'
 )
 
-# Step 3: Rename columns for display
+# Step 3: Rename columns for readability
 link_table.columns = ['Date', 'Post Content', 'Clicks', 'Link']
 
-# Step 4: Display styled table
+# Step 4: Apply dark theme table styles
 st.markdown("""
 <style>
 table {
@@ -390,19 +391,23 @@ table {
     border-collapse: collapse;
     width: 100%;
     font-size: 14px;
+    border: 1px solid #444;
 }
 th {
     background-color: #2b2b2b;
     color: #ffffff;
     padding: 8px;
+    border-bottom: 1px solid #555;
+    text-align: left;
 }
 td {
     padding: 8px;
+    border-bottom: 1px solid #333;
     vertical-align: top;
 }
 a {
-    color: #42a5f5;  /* Light blue */
-    text-decoration: none;
+    font-weight: 500;
+    color: #4FC3F7;
 }
 a:hover {
     text-decoration: underline;
@@ -410,8 +415,9 @@ a:hover {
 </style>
 """, unsafe_allow_html=True)
 
-# Step 5: Render the HTML table
+# Step 5: Render final table
 st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
+
 
 
 # Use Google Sheet instead of local file for timestamp tracking
