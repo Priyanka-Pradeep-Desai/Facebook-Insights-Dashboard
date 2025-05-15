@@ -409,114 +409,71 @@ fig_bar.update_traces(
 # Step 6: Show in Streamlit
 st.plotly_chart(fig_bar, use_container_width=True)
 
-# Chart 4: Love vs Like Reactions - Nested Donut Chart with Extra KPIs
-# Filter posts that have Likes or Loves
-like_posts = weekly_df[weekly_df['Total_Like_Reactions'] > 0]['Content']
-love_posts = weekly_df[weekly_df['Total_Love_Reactions'] > 0]['Content']
-
+# Chart 4: Nested Donut Chart - Reactions vs Engagement Type
+# Step 1: Base Reaction Data (Inner Ring)
 reaction_data = pd.DataFrame({
-    'Reaction Type': ['Like', 'Love'],
+    'Level': ['Inner'] * 2,
+    'Category': ['Like', 'Love'],
     'Count': [total_likes, total_loves],
-    'Posts': [
-        '<br><br>'.join(like_posts.head(5)),  # limit for readability
-        '<br><br>'.join(love_posts.head(5))
-    ]
 })
 
-fig_reactions_donut = px.pie(
-    reaction_data,
-    names='Reaction Type',
+# Step 2: Engagement Quality Classification (Outer Ring)
+def classify_engagement(row):
+    if row['Post_Clicks'] > row['Total_Reactions']:
+        return 'High Engagement'
+    elif abs(row['Post_Clicks'] - row['Total_Reactions']) <= 2:
+        return 'Moderate Engagement'
+    else:
+        return 'Low Engagement'
+
+weekly_df['Engagement_Type'] = weekly_df.apply(classify_engagement, axis=1)
+engagement_counts = weekly_df['Engagement_Type'].value_counts().reset_index()
+engagement_counts.columns = ['Category', 'Count']
+engagement_counts['Level'] = 'Outer'
+
+# Step 3: Combine for Nested Donut
+nested_data = pd.concat([reaction_data, engagement_counts], ignore_index=True)
+
+# Step 4: Create Donut Chart
+fig_nested_donut = px.sunburst(
+    nested_data,
+    path=['Level', 'Category'],
     values='Count',
-    hole=0.5,
-    color='Reaction Type',
+    color='Category',
     color_discrete_map={
         'Like': '#1877F2',
-        'Love': '#D81B60'
-    }
+        'Love': '#D81B60',
+        'High Engagement': '#00C49F',
+        'Moderate Engagement': '#FFBB28',
+        'Low Engagement': '#FF4C4C'
+    },
+    branchvalues='total'
 )
 
-# Custom hover to show reaction type, count, and associated post content
-fig_reactions_donut.update_traces(
-    customdata=reaction_data[['Posts']],
-    hovertemplate="<b>%{label}</b><br>Reactions: %{value}<br><br><b>Sample Posts:</b><br>%{customdata[0]}<extra></extra>"
+# Step 5: Layout styling
+fig_nested_donut.update_layout(
+    margin=dict(t=50, b=40, l=60, r=60),
+    paper_bgcolor='rgba(30,30,30,1)',
+    plot_bgcolor='rgba(20,20,20,1)',
+    font=dict(color='#CCCCCC'),
+    title_font=dict(size=20, color='#FFFFFF'),
+    hoverlabel=dict(bgcolor='rgba(50,50,50,0.8)', font_size=13, font_family="Segoe UI")
 )
 
+# Step 6: Title and Plot
 st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-            ❤️ Emotional Reaction Breakdown
+            🎯 Reaction Type vs Engagement Quality
         </span>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# Chart layout
-fig_reactions_donut.update_layout(
-    title=' ',
-    title_font=dict(size=20, color='#FFFFFF'),
-    font=dict(color='#CCCCCC'),
-    paper_bgcolor='rgba(30,30,30,1)',
-    plot_bgcolor='rgba(20,20,20,1)',
-    margin=dict(t=80, b=40, l=60, r=60)
-)
-st.plotly_chart(fig_reactions_donut, use_container_width=True)
+st.plotly_chart(fig_nested_donut, use_container_width=True)
 
-# KPIs: Reaction Rate and Resonance Depth
-reaction_rate = (total_likes + total_loves) / total_reach if total_reach else 0
-resonance_depth = total_loves / (total_likes + total_loves) if (total_likes + total_likes) else 0
-
-# Styled KPI Cards
-st.markdown("""
-<style>
-.extra-kpi-bar {{
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
-}}
-.extra-kpi {{
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 16px;
-    padding: 20px 30px;
-    box-shadow: inset 0 0 12px rgba(0,0,0,0.2);
-    text-align: center;
-    flex: 1 1 240px;
-    max-width: 300px;
-    transition: transform 0.3s ease;
-}}
-.extra-kpi:hover {{
-    transform: scale(1.05);
-}}
-.extra-kpi-label {{
-    font-size: 17px;
-    color: #cccccc;
-}}
-.extra-kpi-value {{
-    font-size: 28px;
-    font-weight: bold;
-    color: #ffffff;
-    margin-top: 8px;
-}}
-</style>
-
-<div class="extra-kpi-bar">
-    <div class="extra-kpi">
-        <div class="extra-kpi-label">💓 Reaction Rate</div>
-        <div class="extra-kpi-value">{reaction_rate}</div>
-    </div>
-    <div class="extra-kpi">
-        <div class="extra-kpi-label">🔥 Resonance Depth (Love %)</div>
-        <div class="extra-kpi-value">{resonance_depth}</div>
-    </div>
-</div>
-""".format(
-    reaction_rate=f"{reaction_rate:.2%}",
-    resonance_depth=f"{resonance_depth:.1%}"
-), unsafe_allow_html=True)
 
 # Chart 5: Best Day to Post (by Impressions + Reach)
 summary_df['Engagement_Score'] = summary_df['Total_Impressions'] + summary_df['Total_Reach']
