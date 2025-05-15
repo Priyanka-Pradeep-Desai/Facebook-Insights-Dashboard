@@ -233,8 +233,8 @@ fig_reactions.update_layout(
     legend_title_text='Reaction Type',
     xaxis=dict(title='Date', showgrid=False, tickangle=0),
     yaxis=dict(title='Count', gridcolor='rgba(255,255,255,0.05)'),
-    legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1)
-    margin=dict(l=40, r=20, t=60, b=40),
+    legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
+    margin=dict(l=40, r=20, t=60, b=40),  # <-- fixed comma here
     bargap=0.2
 )
 
