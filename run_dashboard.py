@@ -304,6 +304,9 @@ weekly_df['Engagement_Score'] = (
 
 # Step 2: Get Top 10 posts by score
 top_engaged_posts = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).copy()
+st.write("Top posts sample:", top_engaged_posts.head())
+st.write("Engagement score dtype:", top_engaged_posts['Engagement_Score'].dtype)
+
 
 # Step 3: Create funnel chart with gradient colors
 fig_funnel = px.funnel(
