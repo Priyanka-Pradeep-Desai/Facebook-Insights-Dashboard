@@ -505,6 +505,32 @@ st.markdown(
 
 st.plotly_chart(fig_nested_donut, use_container_width=True)
 
+ctr_df = weekly_df[['Content', 'Total_Reach', 'Post_Clicks']].copy()
+ctr_df = ctr_df[ctr_df['Total_Reach'] > 0]
+ctr_df['CTR (%)'] = (ctr_df['Post_Clicks'] / ctr_df['Total_Reach']) * 100
+ctr_df = ctr_df.sort_values(by='CTR (%)', ascending=False).head(10)
+import plotly.express as px
+
+fig_ctr = px.bar(
+    ctr_df[::-1],
+    x='CTR (%)',
+    y='Content',
+    orientation='h',
+    title='📈 Top 10 Posts by Click-to-Reach Rate',
+    text='CTR (%)',
+    color='CTR (%)',
+    color_continuous_scale='Blues'
+)
+
+fig_ctr.update_layout(
+    paper_bgcolor='rgba(30,30,30,1)',
+    plot_bgcolor='rgba(20,20,20,1)',
+    font=dict(color='#CCCCCC'),
+    margin=dict(l=100, r=40, t=80, b=60)
+)
+
+st.plotly_chart(fig_ctr, use_container_width=True)
+
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
