@@ -350,38 +350,26 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 # Chart 4: Love vs Like Reactions - Nested Donut Chart with Extra KPIs
-# Step 1: Donut Chart (Impressions/Reach inner, Reactions outer)
-fig_donut = make_subplots(rows=1, cols=1, specs=[[{'type':'domain'}]])
+# Updated Chart 4: Donut Chart for Reactions Only (Like vs Love)
+reaction_totals = pd.DataFrame({
+    'Reaction Type': ['Like Reactions', 'Love Reactions'],
+    'Count': [total_likes, total_loves]
+})
 
-# Inner ring: Impressions vs Reach
-fig_donut.add_trace(go.Pie(
-    labels=["Impressions", "Reach"],
-    values=[total_impressions, total_reach],
-    name="Impressions vs Reach",
-    hole=0.4,
-    marker=dict(colors=['#FFB300', '#43A047']),
-    textinfo='label+percent',
-    domain={'x': [0, 1], 'y': [0, 1]},
-    sort=False
-), 1, 1)
+fig_reactions_donut = px.pie(
+    reaction_totals,
+    names='Reaction Type',
+    values='Count',
+    title='❤️ Emotional Reaction Breakdown',
+    hole=0.5,
+    color='Reaction Type',
+    color_discrete_map={
+        'Like Reactions': '#1877F2',
+        'Love Reactions': '#D81B60'
+    }
+)
 
-# Outer ring: Like vs Love Reactions
-fig_donut.add_trace(go.Pie(
-    labels=["Like Reactions", "Love Reactions"],
-    values=[total_likes, total_loves],
-    name="Reactions",
-    hole=0.7,
-    marker=dict(colors=['#1877F2', '#D81B60']),
-    textinfo='label+percent',
-    domain={'x': [0, 1], 'y': [0, 1]},
-    sort=False,
-    direction='clockwise',
-    rotation=90,
-    showlegend=False
-), 1, 1)
-
-fig_donut.update_layout(
-    title_text="🧁 Reach & Impressions (Core Audience) vs ❤️ & 👍 Reactions (Emotional Engagement)",
+fig_reactions_donut.update_layout(
     title_font=dict(size=20, color='#FFFFFF'),
     font=dict(color='#CCCCCC'),
     paper_bgcolor='rgba(30,30,30,1)',
@@ -389,14 +377,13 @@ fig_donut.update_layout(
     margin=dict(t=80, b=40, l=60, r=60)
 )
 
-# Display chart
-st.plotly_chart(fig_donut, use_container_width=True)
+st.plotly_chart(fig_reactions_donut, use_container_width=True)
 
-# Step 2: KPI Calculations
+# KPIs: Reaction Rate and Resonance Depth
 reaction_rate = (total_likes + total_loves) / total_reach if total_reach else 0
-resonance_depth = total_loves / (total_likes + total_loves) if (total_likes + total_loves) else 0
+resonance_depth = total_loves / (total_likes + total_loves) if (total_likes + total_likes) else 0
 
-# Step 3: Show Styled KPI Cards
+# Styled KPI Cards
 st.markdown("""
 <style>
 .extra-kpi-bar {{
