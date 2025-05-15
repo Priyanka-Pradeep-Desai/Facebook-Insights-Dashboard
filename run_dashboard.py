@@ -348,18 +348,106 @@ fig_bar.update_traces(
 # Step 6: Show in Streamlit
 st.plotly_chart(fig_bar, use_container_width=True)
 
-# Chart 4: Love vs Like Reactions - Pie Chart
-reaction_totals = pd.DataFrame({
-    'Reaction Type': ['Love Reactions', 'Like Reactions'],
-    'Count': [total_loves, total_likes]
-})
-fig_pie = px.pie(
-    reaction_totals,
-    names='Reaction Type',
-    values='Count',
-    title='❤️ vs 👍 Reaction Distribution'
+# Chart 4: Love vs Like Reactions - Nested Donut Chart with Extra KPIs
+
+from plotly.subplots import make_subplots
+
+# Step 1: Donut Chart (Impressions/Reach inner, Reactions outer)
+fig_donut = make_subplots(rows=1, cols=1, specs=[[{'type':'domain'}]])
+
+# Inner ring: Impressions vs Reach
+fig_donut.add_trace(go.Pie(
+    labels=["Impressions", "Reach"],
+    values=[total_impressions, total_reach],
+    name="Impressions vs Reach",
+    hole=0.4,
+    marker=dict(colors=['#FFB300', '#43A047']),
+    textinfo='label+percent',
+    domain={'x': [0, 1], 'y': [0, 1]},
+    sort=False
+), 1, 1)
+
+# Outer ring: Like vs Love Reactions
+fig_donut.add_trace(go.Pie(
+    labels=["Like Reactions", "Love Reactions"],
+    values=[total_likes, total_loves],
+    name="Reactions",
+    hole=0.7,
+    marker=dict(colors=['#1877F2', '#D81B60']),
+    textinfo='label+percent',
+    domain={'x': [0, 1], 'y': [0, 1]},
+    sort=False,
+    direction='clockwise',
+    rotation=90,
+    showlegend=False
+), 1, 1)
+
+fig_donut.update_layout(
+    title_text="🧁 Reach & Impressions (Core Audience) vs ❤️ & 👍 Reactions (Emotional Engagement)",
+    title_font=dict(size=20, color='#FFFFFF'),
+    font=dict(color='#CCCCCC'),
+    paper_bgcolor='rgba(30,30,30,1)',
+    plot_bgcolor='rgba(20,20,20,1)',
+    margin=dict(t=80, b=40, l=60, r=60)
 )
-st.plotly_chart(fig_pie, use_container_width=True)
+
+# Display chart
+st.plotly_chart(fig_donut, use_container_width=True)
+
+# Step 2: KPI Calculations
+reaction_rate = (total_likes + total_loves) / total_reach if total_reach else 0
+resonance_depth = total_loves / (total_likes + total_loves) if (total_likes + total_loves) else 0
+
+# Step 3: Show Styled KPI Cards
+st.markdown("""
+<style>
+.extra-kpi-bar {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+.extra-kpi {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 20px 30px;
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.2);
+    text-align: center;
+    width: 280px;
+    transition: transform 0.3s ease;
+}
+.extra-kpi:hover {
+    transform: scale(1.05);
+}
+.extra-kpi-label {
+    font-size: 17px;
+    color: #cccccc;
+}
+.extra-kpi-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffffff;
+    margin-top: 8px;
+}
+</style>
+
+<div class="extra-kpi-bar">
+    <div class="extra-kpi">
+        <div class="extra-kpi-label">💓 Reaction Rate</div>
+        <div class="extra-kpi-value">{reaction_rate}</div>
+    </div>
+    <div class="extra-kpi">
+        <div class="extra-kpi-label">🔥 Resonance Depth (Love %)</div>
+        <div class="extra-kpi-value">{resonance_depth}</div>
+    </div>
+</div>
+""".format(
+    reaction_rate=f"{reaction_rate:.2%}",
+    resonance_depth=f"{resonance_depth:.1%}"
+), unsafe_allow_html=True)
+
 
 # Chart 5: Best Day to Post (by Impressions + Reach)
 summary_df['Engagement_Score'] = summary_df['Total_Impressions'] + summary_df['Total_Reach']
