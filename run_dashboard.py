@@ -292,7 +292,8 @@ fig_impressions.update_layout(
 )
 st.plotly_chart(fig_impressions, use_container_width=True)
 
-top_posts = weekly_df.sort_values(by='Post_Clicks', ascending=False).head(10)
+# Chart 3: Top 10 Posts by Clicks
+top_posts = weekly_df.sort_values(by='Post_Clicks', ascending=False).head(10).iloc[::-1]
 
 fig3 = px.bar(
     top_posts,
@@ -320,9 +321,7 @@ fig3.update_traces(
     marker_line_color='rgba(255,255,255,0.1)',
     hovertemplate='<b>Clicks:</b> %{x}<br><b>Post:</b> %{y}<br><b>🔗 Link:</b> %{customdata[2]}<extra></extra>'
 )
-
 st.plotly_chart(fig3, use_container_width=True)
-
 
 # Chart 4: Love vs Like Reactions - Pie Chart
 reaction_totals = pd.DataFrame({
