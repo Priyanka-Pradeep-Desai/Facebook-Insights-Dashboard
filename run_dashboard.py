@@ -293,7 +293,7 @@ fig_impressions.update_layout(
 st.plotly_chart(fig_impressions, use_container_width=True)
 
 # Chart 3: Top engaged posts
-# Step 1: Create a composite engagement score
+# Step 1: Compute engagement score
 weekly_df['Engagement_Score'] = (
     weekly_df['Total_Impressions'] +
     weekly_df['Total_Reach'] +
@@ -302,37 +302,50 @@ weekly_df['Engagement_Score'] = (
     weekly_df['Post_Clicks']
 )
 
-# Step 2: Sort and select top 10 posts by engagement
+# Step 2: Get Top 10 posts by score
 top_engaged_posts = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).copy()
 
-# Step 3: Build the funnel chart
+# Step 3: Create funnel chart with gradient colors
 fig_funnel = px.funnel(
     top_engaged_posts,
     y='Content',
     x='Engagement_Score',
     title='🏆 Top 10 Posts by Total Engagement',
-    color='Engagement_Score',
-    color_continuous_scale='Plasma'
+    color='Engagement_Score',  # Use engagement for gradient
+    color_continuous_scale='Plasma'  # Options: 'Plasma', 'Inferno', 'Turbo', 'Viridis'
 )
 
+# Step 4: Layout for dark theme + clean margins
 fig_funnel.update_layout(
     plot_bgcolor='rgba(20,20,20,1)',
     paper_bgcolor='rgba(30,30,30,1)',
     title_font=dict(size=20, color='#FFFFFF'),
-    font=dict(color='#CCCCCC'),
+    font=dict(color='#CCCCCC', size=13),  # Smaller font for long titles
     margin=dict(l=100, r=40, t=80, b=60),
     xaxis_title='Total Engagement Score',
     yaxis_title='Post',
     coloraxis_colorbar=dict(title='Engagement')
 )
 
-# Step 5: Hover customization
+# Step 5: Show full metric breakdown in hover
 fig_funnel.update_traces(
-    hovertemplate='<b>Post:</b> %{y}<br><b>Engagement Score:</b> %{x}<extra></extra>'
+    customdata=top_engaged_posts[
+        ['Total_Impressions', 'Total_Reach', 'Total_Like_Reactions', 'Total_Love_Reactions', 'Post_Clicks']
+    ],
+    hovertemplate=(
+        '<b>Post:</b> %{y}<br>'
+        '👁 Impressions: %{customdata[0]}<br>'
+        '📢 Reach: %{customdata[1]}<br>'
+        '👍 Likes: %{customdata[2]}<br>'
+        '❤️ Loves: %{customdata[3]}<br>'
+        '🖱 Clicks: %{customdata[4]}<br>'
+        '<b>Total Score:</b> %{x}<extra></extra>'
+    )
 )
 
-# Step 6: Display in Streamlit
+# Step 6: Render in Streamlit
 st.plotly_chart(fig_funnel, use_container_width=True)
+
 
 
 # Chart 4: Love vs Like Reactions - Pie Chart
