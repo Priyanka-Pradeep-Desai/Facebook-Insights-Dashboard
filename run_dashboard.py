@@ -250,9 +250,6 @@ fig_reactions.update_layout(
 st.plotly_chart(fig_reactions, use_container_width=True)
 
 # Chart 2: Total Impressions vs Reach (Daily Aggregated with Hover)
-
-# Chart 2: Total Impressions vs Reach (Daily Aggregated with Date Labels)
-
 # Step 1: Aggregate daily impressions, reach, and combine post content
 daily_summary = (
     weekly_df
@@ -267,7 +264,7 @@ daily_summary = (
 )
 
 # Step 2: Add readable date labels (e.g., "May 7, 2025") for x-axis
-daily_summary['Date_Label'] = pd.to_datetime(daily_summary['index']).dt.strftime('%b %d, %Y')
+daily_summary['Date_Label'] = pd.to_datetime(daily_summary['Date']).dt.strftime('%b %d, %Y')
 
 # Step 3: Create figure
 fig_impressions = go.Figure()
