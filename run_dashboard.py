@@ -409,7 +409,61 @@ fig_bar.update_traces(
 # Step 6: Show in Streamlit
 st.plotly_chart(fig_bar, use_container_width=True)
 
-import plotly.express as px
+# Step 1: Classify engagement
+def classify_engagement(row):
+    if row['Post_Clicks'] > row['Total_Reactions']:
+        return 'High Engagement'
+    elif abs(row['Post_Clicks'] - row['Total_Reactions']) <= 2:
+        return 'Moderate Engagement'
+    else:
+        return 'Low Engagement'
+
+weekly_df['Engagement_Quality'] = weekly_df.apply(classify_engagement, axis=1)
+
+# Step 2: Group like reactions by engagement quality (ensure all levels)
+engagement_levels = ['High Engagement', 'Moderate Engagement', 'Low Engagement']
+
+like_breakdown = (
+    weekly_df[weekly_df['Total_Like_Reactions'] > 0]
+    .groupby('Engagement_Quality')['Total_Like_Reactions']
+    .sum()
+    .reindex(engagement_levels, fill_value=0)
+    .reset_index()
+    .assign(Parent='Like')
+)
+
+love_breakdown = (
+    weekly_df[weekly_df['Total_Love_Reactions'] > 0]
+    .groupby('Engagement_Quality')['Total_Love_Reactions']
+    .sum()
+    .reindex(engagement_levels, fill_value=0)
+    .reset_index()
+    .assign(Parent='Love')
+)
+
+like_breakdown.columns = ['Label', 'Value', 'Parent']
+love_breakdown.columns = ['Label', 'Value', 'Parent']
+
+# Step 3: Add Like and Love totals
+total_likes = like_breakdown['Value'].sum()
+total_loves = love_breakdown['Value'].sum()
+
+reaction_totals = pd.DataFrame({
+    'Label': ['Like', 'Love'],
+    'Value': [total_likes, total_loves],
+    'Parent': ['All Reactions', 'All Reactions']
+})
+
+# Step 4: Add root node
+root = pd.DataFrame([{
+    'Label': 'All Reactions',
+    'Value': total_likes + total_loves,
+    'Parent': ''
+}])
+
+# Step 5: Combine into sunburst data
+sunburst_df_fixed = pd.concat([root, reaction_totals, like_breakdown, love_breakdown], ignore_index=True)
+
 
 fig_nested_donut = px.sunburst(
     sunburst_df_fixed,
@@ -447,9 +501,6 @@ st.markdown(
 )
 
 st.plotly_chart(fig_nested_donut, use_container_width=True)
-
-
-
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
