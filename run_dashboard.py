@@ -293,7 +293,9 @@ fig_impressions.update_layout(
 st.plotly_chart(fig_impressions, use_container_width=True)
 
 # Chart 3: Top engaged posts
-# Step 1: Compute engagement score
+import plotly.express as px
+
+# Step 1: Create engagement score
 weekly_df['Engagement_Score'] = (
     weekly_df['Total_Impressions'] +
     weekly_df['Total_Reach'] +
@@ -302,39 +304,40 @@ weekly_df['Engagement_Score'] = (
     weekly_df['Post_Clicks']
 )
 
-# Step 2: Get Top 10 posts by score
+# Step 2: Sort top 10
 top_engaged_posts = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).copy()
-st.write("Top posts sample:", top_engaged_posts.head())
-st.write("Engagement score dtype:", top_engaged_posts['Engagement_Score'].dtype)
 
-
-# Step 3: Create funnel chart with gradient colors
-fig_funnel = px.funnel(
-    top_engaged_posts,
-    y='Content',
+# Step 3: Create horizontal bar chart with gradient coloring
+fig_bar = px.bar(
+    top_engaged_posts.iloc[::-1],  # Reverse so highest is on top
     x='Engagement_Score',
+    y='Content',
+    orientation='h',
     title='🏆 Top 10 Posts by Total Engagement',
-    color='Engagement_Score',  # Use engagement for gradient
-    color_continuous_scale='Plasma'  # Options: 'Plasma', 'Inferno', 'Turbo', 'Viridis'
+    color='Engagement_Score',
+    color_continuous_scale='Plasma',  # Try 'Inferno', 'Viridis', 'Turbo' too
+    labels={'Content': 'Post', 'Engagement_Score': 'Engagement Score'}
 )
 
-# Step 4: Layout for dark theme + clean margins
-fig_funnel.update_layout(
+# Step 4: Dark theme + styling
+fig_bar.update_layout(
     plot_bgcolor='rgba(20,20,20,1)',
     paper_bgcolor='rgba(30,30,30,1)',
     title_font=dict(size=20, color='#FFFFFF'),
-    font=dict(color='#CCCCCC', size=13),  # Smaller font for long titles
+    font=dict(color='#CCCCCC', size=13),
     margin=dict(l=100, r=40, t=80, b=60),
-    xaxis_title='Total Engagement Score',
-    yaxis_title='Post',
     coloraxis_colorbar=dict(title='Engagement')
 )
 
-# Step 5: Show full metric breakdown in hover
-fig_funnel.update_traces(
-    customdata=top_engaged_posts[
-        ['Total_Impressions', 'Total_Reach', 'Total_Like_Reactions', 'Total_Love_Reactions', 'Post_Clicks']
-    ],
+# Step 5: Detailed hover breakdown
+fig_bar.update_traces(
+    customdata=top_engaged_posts.iloc[::-1][[
+        'Total_Impressions',
+        'Total_Reach',
+        'Total_Like_Reactions',
+        'Total_Love_Reactions',
+        'Post_Clicks'
+    ]],
     hovertemplate=(
         '<b>Post:</b> %{y}<br>'
         '👁 Impressions: %{customdata[0]}<br>'
@@ -346,10 +349,8 @@ fig_funnel.update_traces(
     )
 )
 
-# Step 6: Render in Streamlit
-st.plotly_chart(fig_funnel, use_container_width=True)
-
-
+# Step 6: Show in Streamlit
+st.plotly_chart(fig_bar, use_container_width=True)
 
 # Chart 4: Love vs Like Reactions - Pie Chart
 reaction_totals = pd.DataFrame({
