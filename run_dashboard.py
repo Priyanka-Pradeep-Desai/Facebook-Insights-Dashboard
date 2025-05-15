@@ -189,8 +189,7 @@ except Exception as e:
 # Chart 1: Daily Reaction Types Breakdown
 import plotly.express as px
 
-custom_colors = ['#00BCD4', '#FFB74D']  # Cyan & amber
- # Teal and pink (looks good in dark mode)
+custom_colors = ['c9184a', 'ff758f']  
 # Add post content per day to summary_df
 weekly_df['Created_Date'] = weekly_df['Created_Time'].dt.date
 contents_by_day = (
