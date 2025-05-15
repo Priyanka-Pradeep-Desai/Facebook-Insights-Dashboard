@@ -311,10 +311,10 @@ fig_funnel = px.funnel(
     y='Content',
     x='Engagement_Score',
     title='🏆 Top 10 Posts by Total Engagement',
-    color_discrete_sequence=['#AB47BC']  # Deep purple for elegance
+    color='Engagement_Score',
+    color_continuous_scale='Plasma'
 )
 
-# Step 4: Layout for dark theme
 fig_funnel.update_layout(
     plot_bgcolor='rgba(20,20,20,1)',
     paper_bgcolor='rgba(30,30,30,1)',
@@ -323,6 +323,7 @@ fig_funnel.update_layout(
     margin=dict(l=100, r=40, t=80, b=60),
     xaxis_title='Total Engagement Score',
     yaxis_title='Post',
+    coloraxis_colorbar=dict(title='Engagement')
 )
 
 # Step 5: Hover customization
