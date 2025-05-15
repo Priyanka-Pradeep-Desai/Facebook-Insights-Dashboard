@@ -422,6 +422,17 @@ inner_values = [like_total, love_total]
 
 # Outer ring: Engagement breakdown by reaction type
 engagement_levels = ['High Engagement', 'Moderate Engagement', 'Low Engagement']
+# Ensure Engagement_Quality is defined BEFORE filtering anything
+def classify_engagement(row):
+    if row['Post_Clicks'] > row['Total_Reactions']:
+        return 'High Engagement'
+    elif abs(row['Post_Clicks'] - row['Total_Reactions']) <= 2:
+        return 'Moderate Engagement'
+    else:
+        return 'Low Engagement'
+
+if 'Engagement_Quality' not in weekly_df.columns:
+    weekly_df['Engagement_Quality'] = weekly_df.apply(classify_engagement, axis=1)
 
 # Likes breakdown
 like_breakdown = (
