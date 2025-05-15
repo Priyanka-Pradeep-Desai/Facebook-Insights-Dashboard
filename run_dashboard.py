@@ -249,26 +249,41 @@ fig_reactions.update_layout(
 )
 st.plotly_chart(fig_reactions, use_container_width=True)
 
-# Chart 2: Total Impressions vs Reach (show both even if same)
+# Chart 2: Total Impressions vs Reach (Daily Aggregated with Hover)
+
+# Step 1: Aggregate impressions, reach, and combine post content per day
+daily_summary = (
+    weekly_df
+    .groupby(weekly_df['Created_Time'].dt.date)
+    .agg({
+        'Total_Impressions': 'sum',
+        'Total_Reach': 'sum',
+        'Content': lambda x: '<br>'.join(x)
+    })
+    .reset_index()
+    .rename(columns={'Created_Time': 'Date', 'Content': 'Post_Contents'})
+)
+
+# Step 2: Create figure
 fig_impressions = go.Figure()
 
-# Invisible marker layer to show post content in hover
+# Step 3: Invisible trace to show all post content in hover
 fig_impressions.add_trace(go.Scatter(
-    x=weekly_df['Created_Time'],
-    y=[0.001] * len(weekly_df),
+    x=daily_summary['Date'],
+    y=[0.001] * len(daily_summary),
     mode='markers',
     name='',
-    text=weekly_df['Content'],
-    hovertemplate='<b>Post:</b> %{text}<extra></extra>',
+    text=daily_summary['Post_Contents'],
+    hovertemplate='<b>Posts:</b><br>%{text}<extra></extra>',
     marker=dict(size=0.1, opacity=0.001, color='rgba(0,0,0,0)'),
     showlegend=False,
     hoverlabel=dict(namelength=0)
 ))
 
-# Trace 1: Impressions (Amber)
+# Step 4: Impressions line
 fig_impressions.add_trace(go.Scatter(
-    x=weekly_df['Created_Time'],
-    y=weekly_df['Total_Impressions'],
+    x=daily_summary['Date'],
+    y=daily_summary['Total_Impressions'],
     mode='lines+markers',
     name='📊 Impressions',
     line=dict(color='#FFB300', width=2),
@@ -276,10 +291,10 @@ fig_impressions.add_trace(go.Scatter(
     hovertemplate='<b>Impressions:</b> %{y}<extra></extra>'
 ))
 
-# Trace 2: Reach (Green)
+# Step 5: Reach line
 fig_impressions.add_trace(go.Scatter(
-    x=weekly_df['Created_Time'],
-    y=weekly_df['Total_Reach'],
+    x=daily_summary['Date'],
+    y=daily_summary['Total_Reach'],
     mode='lines+markers',
     name='👥 Reach',
     line=dict(color='#43A047', width=2),
@@ -287,7 +302,7 @@ fig_impressions.add_trace(go.Scatter(
     hovertemplate='<b>Reach:</b> %{y}<extra></extra>'
 ))
 
-# Layout improvements
+# Step 6: Layout styling
 fig_impressions.update_layout(
     title='📈 Total Impressions vs Reach (Hover shows both)',
     xaxis_title='Date',
@@ -300,7 +315,9 @@ fig_impressions.update_layout(
     margin=dict(l=60, r=40, t=80, b=60),
     legend=dict(orientation='h', yanchor='bottom', y=1.1, xanchor='right', x=1)
 )
+# Step 7: Show chart in Streamlit
 st.plotly_chart(fig_impressions, use_container_width=True)
+
 
 # Chart 3: Top engaged posts
 # Step 1: Create engagement score
