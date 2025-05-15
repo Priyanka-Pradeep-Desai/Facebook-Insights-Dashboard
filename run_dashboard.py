@@ -413,9 +413,11 @@ st.plotly_chart(fig_bar, use_container_width=True)
 import pandas as pd
 import plotly.express as px
 
-# Ensure classification
+# Step 1: Fix engagement classification
 def classify_engagement(row):
-    if row['Post_Clicks'] > row['Total_Reactions']:
+    if pd.isna(row['Post_Clicks']) or pd.isna(row['Total_Reactions']):
+        return 'Low Engagement'
+    elif row['Post_Clicks'] > row['Total_Reactions']:
         return 'High Engagement'
     elif abs(row['Post_Clicks'] - row['Total_Reactions']) <= 2:
         return 'Moderate Engagement'
@@ -424,30 +426,33 @@ def classify_engagement(row):
 
 weekly_df['Engagement_Quality'] = weekly_df.apply(classify_engagement, axis=1)
 
-# Mark posts by reaction type
-reaction_rows = []
+# Step 2: Build hierarchical data
+def build_reaction_engagement_tree(reaction_type, df):
+    subset = df[df[f'Total_{reaction_type}_Reactions'] > 0]
+    counts = subset['Engagement_Quality'].value_counts().to_dict()
+    
+    children = []
+    for level in ['High Engagement', 'Moderate Engagement', 'Low Engagement']:
+        value = counts.get(level, 0)
+        children.append({
+            'Label': level,
+            'Parent': reaction_type,
+            'Value': value
+        })
+    
+    return children + [{
+        'Label': reaction_type,
+        'Parent': '',
+        'Value': len(subset)
+    }]
 
-# Like posts
-like_posts = weekly_df[weekly_df['Total_Like_Reactions'] > 0]
-for quality in ['High Engagement', 'Moderate Engagement', 'Low Engagement']:
-    count = (like_posts['Engagement_Quality'] == quality).sum()
-    if count > 0:
-        reaction_rows.append({'Parent': 'Like', 'Label': quality, 'Value': count})
-reaction_rows.append({'Parent': '', 'Label': 'Like', 'Value': len(like_posts)})
+tree = build_reaction_engagement_tree('Like', weekly_df)
+tree += build_reaction_engagement_tree('Love', weekly_df)
 
-# Love posts
-love_posts = weekly_df[weekly_df['Total_Love_Reactions'] > 0]
-for quality in ['High Engagement', 'Moderate Engagement', 'Low Engagement']:
-    count = (love_posts['Engagement_Quality'] == quality).sum()
-    if count > 0:
-        reaction_rows.append({'Parent': 'Love', 'Label': quality, 'Value': count})
-reaction_rows.append({'Parent': '', 'Label': 'Love', 'Value': len(love_posts)})
+sunburst_df = pd.DataFrame(tree)
 
-# Create DataFrame for sunburst
-sunburst_df = pd.DataFrame(reaction_rows)
-
-# Plot as true nested donut
-fig_nested = px.sunburst(
+# Step 3: True nested donut using sunburst with clean styling
+fig = px.sunburst(
     sunburst_df,
     names='Label',
     parents='Parent',
@@ -459,19 +464,41 @@ fig_nested = px.sunburst(
         'High Engagement': '#00C49F',
         'Moderate Engagement': '#FFBB28',
         'Low Engagement': '#FF4C4C'
-    }
+    },
+    branchvalues='total',
+    maxdepth=2
 )
 
-fig_nested.update_layout(
-    title_text='🍩 True Nested Donut: Reaction Type vs Engagement Quality',
+# Step 4: Styling fixes
+fig.update_traces(
+    hovertemplate='<b>%{label}</b><br>Count: %{value}<extra></extra>',
+    insidetextorientation='radial',
+    root_color='rgba(0,0,0,0)'
+)
+
+fig.update_layout(
+    title_text='🍩 Donut Pie Chart: Reaction Type vs Engagement Quality',
+    margin=dict(t=60, b=20, l=40, r=40),
+    uniformtext=dict(minsize=10, mode='hide'),
+    sunburstcolorway=['#1877F2', '#D81B60', '#00C49F', '#FFBB28', '#FF4C4C'],
     paper_bgcolor='rgba(30,30,30,1)',
     plot_bgcolor='rgba(20,20,20,1)',
-    font=dict(color='#CCCCCC'),
-    margin=dict(t=60, b=40, l=40, r=40)
+    font=dict(color='#CCCCCC')
 )
 
-st.plotly_chart(fig_nested, use_container_width=True)
+# Step 5: Render
+st.markdown(
+    """
+    <div style='text-align: center; padding-top: 10px; padding-bottom: 10px;'>
+        <span style='font-size: 22px; font-weight: 700; color: #FFFFFF;'>
+            🍩 Donut Pie Chart: Reaction Type vs Engagement Quality
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
+st.plotly_chart(fig, use_container_width=True)
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
