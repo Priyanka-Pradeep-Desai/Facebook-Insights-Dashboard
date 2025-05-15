@@ -294,7 +294,7 @@ st.plotly_chart(fig_impressions, use_container_width=True)
 # Chart 3: Top engaged posts
 import plotly.graph_objects as go
 
-# Step 1: Compute engagement
+# Step 1: Calculate Engagement Score
 weekly_df['Engagement_Score'] = (
     weekly_df['Total_Impressions'] +
     weekly_df['Total_Reach'] +
@@ -303,18 +303,21 @@ weekly_df['Engagement_Score'] = (
     weekly_df['Post_Clicks']
 )
 
-# Step 2: Get top 10
+# Step 2: Get top posts (up to 10)
 top10 = weekly_df.sort_values(by='Engagement_Score', ascending=False).head(10).reset_index(drop=True)
 
-# Step 3: Define triangle layout (manual positions)
+# Step 3: Define triangle coordinates (up to 10 positions)
 triangle_positions = [
-    (2, 0),                     # row 1 (top)
-    (1, -1), (3, -1),           # row 2
-    (0, -2), (2, -2), (4, -2),  # row 3
-    (-1, -3), (1, -3), (3, -3), (5, -3)  # row 4
+    (2, 0),                          # 🥇 top post
+    (1, -1), (3, -1),                # 🥈 🥉
+    (0, -2), (2, -2), (4, -2),       # rank 4–6
+    (-1, -3), (1, -3), (3, -3), (5, -3)  # rank 7–10
 ]
 
-# Step 4: Plot using Scatter
+# Step 4: Match number of positions to number of posts
+triangle_positions = triangle_positions[:len(top10)]
+
+# Step 5: Create scatter plot
 fig = go.Figure()
 
 for i, (x, y) in enumerate(triangle_positions):
@@ -326,8 +329,9 @@ for i, (x, y) in enumerate(triangle_positions):
         x=[x],
         y=[y],
         mode='markers+text',
-        marker=dict(size=35, color='#7E57C2'),
+        marker=dict(size=38, color='#7E57C2', line=dict(color='white', width=1.5)),
         text=[emoji],
+        textfont=dict(color='white', size=16),
         textposition='middle center',
         hovertemplate=(
             f"<b>Post Rank:</b> {rank}<br>"
@@ -342,9 +346,9 @@ for i, (x, y) in enumerate(triangle_positions):
         showlegend=False
     ))
 
-# Step 5: Layout styling
+# Step 6: Layout styling
 fig.update_layout(
-    title='🔺 Top 10 Posts in Triangle Format',
+    title='🔺 Top Posts in Triangle Format',
     plot_bgcolor='rgba(20,20,20,1)',
     paper_bgcolor='rgba(30,30,30,1)',
     title_font=dict(size=20, color='#FFFFFF'),
@@ -355,6 +359,7 @@ fig.update_layout(
     height=600
 )
 
+# Step 7: Display in Streamlit
 st.plotly_chart(fig, use_container_width=True)
 
 # Chart 4: Love vs Like Reactions - Pie Chart
