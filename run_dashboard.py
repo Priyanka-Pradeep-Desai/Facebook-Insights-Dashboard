@@ -409,70 +409,45 @@ fig_bar.update_traces(
 # Step 6: Show in Streamlit
 st.plotly_chart(fig_bar, use_container_width=True)
 
-# Chart 4: Nested Donut Chart – Reaction Type + Engagement Quality
+import plotly.express as px
 
-# Step 1: Reaction totals
-reaction_data = pd.DataFrame({
-    'Parent': ['All Reactions', 'All Reactions'],
-    'Label': ['Like', 'Love'],
-    'Value': [total_likes, total_loves]
-})
-
-# Step 2: Engagement quality categorization
-def classify_engagement(row):
-    if row['Post_Clicks'] > row['Total_Reactions']:
-        return 'High Engagement'
-    elif abs(row['Post_Clicks'] - row['Total_Reactions']) <= 2:
-        return 'Moderate Engagement'
-    else:
-        return 'Low Engagement'
-
-weekly_df['Engagement_Quality'] = weekly_df.apply(classify_engagement, axis=1)
-engagement_counts = weekly_df['Engagement_Quality'].value_counts().reset_index()
-engagement_counts.columns = ['Label', 'Value']
-engagement_counts['Parent'] = 'All Reactions'
-
-# Step 3: Combine into one tree
-sunburst_df = pd.concat([reaction_data, engagement_counts], ignore_index=True)
-
-# Step 4: Create chart
-fig_nested = px.sunburst(
-    sunburst_df,
+fig_nested_donut = px.sunburst(
+    sunburst_df_fixed,
     names='Label',
     parents='Parent',
     values='Value',
     color='Label',
     color_discrete_map={
+        'All Reactions': '#444444',
         'Like': '#1877F2',
         'Love': '#D81B60',
         'High Engagement': '#00C49F',
         'Moderate Engagement': '#FFBB28',
-        'Low Engagement': '#FF4C4C',
-        'All Reactions': '#222222'
+        'Low Engagement': '#FF4C4C'
     }
 )
 
-# Step 5: Layout
-fig_nested.update_layout(
+fig_nested_donut.update_layout(
     margin=dict(t=50, b=40, l=60, r=60),
     paper_bgcolor='rgba(30,30,30,1)',
     plot_bgcolor='rgba(20,20,20,1)',
     font=dict(color='#CCCCCC'),
-    hoverlabel=dict(bgcolor='rgba(50,50,50,0.8)', font_size=13)
+    hoverlabel=dict(bgcolor='rgba(50,50,50,0.9)', font_size=13)
 )
 
 st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-            🎯 Reaction Types & Engagement Quality Breakdown
+            🧠 Reaction Breakdown by Engagement Quality
         </span>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-st.plotly_chart(fig_nested, use_container_width=True)
+st.plotly_chart(fig_nested_donut, use_container_width=True)
+
 
 
 
