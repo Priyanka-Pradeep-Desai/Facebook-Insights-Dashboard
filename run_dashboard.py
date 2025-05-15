@@ -188,7 +188,7 @@ except Exception as e:
     st.stop()
 
 # Chart 1: Daily Reaction Types Breakdown
-custom_colors = ['#EC407A', '#D81B60']  # Dark pink and soft pink
+custom_colors = ['#1877F2', '#D81B60']  # Dark pink and soft pink
 
 # Add post content per day to summary_df
 weekly_df['Created_Date'] = weekly_df['Created_Time'].dt.date
