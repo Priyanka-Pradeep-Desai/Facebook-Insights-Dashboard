@@ -432,16 +432,27 @@ clicks_total = post_clicks
 reactions_total = like_reactions + love_reactions
 views_total = impressions + reach
 
-# === Labels and colors
-# Inner ring: detailed breakdown
+# # === Labels and colors
+# # Inner ring: detailed breakdown
+# inner_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions', 'Impressions', 'Reach']
+# inner_values = [post_clicks, like_reactions, love_reactions, impressions, reach]
+# inner_colors = ['#6B8FD6', '#C084F5', '#EF798A', '#FFD166', '#7CD992']
+
+# # Outer ring: summary
+# outer_labels = ['Clicks', 'Reactions', 'Views']
+# outer_values = [clicks_total, reactions_total, views_total]
+# outer_colors = ['#4C78A8', '#A05D56', '#72B7B2']
+
+
+# === Inner ring: detailed breakdown
 inner_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions', 'Impressions', 'Reach']
 inner_values = [post_clicks, like_reactions, love_reactions, impressions, reach]
-inner_colors = ['#6B8FD6', '#C084F5', '#EF798A', '#FFD166', '#7CD992']
+inner_colors = ['#1f77b4', '#5DADE2', '#d62728', '#FFD700', '#00FF7F']
 
-# Outer ring: summary
+# === Outer ring: summary
 outer_labels = ['Clicks', 'Reactions', 'Views']
 outer_values = [clicks_total, reactions_total, views_total]
-outer_colors = ['#4C78A8', '#A05D56', '#72B7B2']
+outer_colors = ['#3399FF', '#FF6F61', '#28B463']
 
 # === Chart build
 fig_nested = go.Figure()
