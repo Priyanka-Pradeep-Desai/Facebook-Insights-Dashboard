@@ -495,37 +495,61 @@ fig_nested.update_layout(
 )
 st.plotly_chart(fig_nested, use_container_width=False)
 
-# Add Weekday + Index
-weekly_df['Weekday'] = weekly_df['Created_Time'].dt.day_name()
-weekly_df['Weekday_Index'] = weekly_df['Created_Time'].dt.weekday  # 0=Monday
-
-# Group by weekday and calculate average engagement
-best_day_df = (
-    weekly_df.groupby(['Weekday', 'Weekday_Index'])['Engagement_Score']
+# Group by weekday and show average engagement (already have Weekday in weekly_df)
+avg_day_scores = (
+    weekly_df.groupby(['Weekday'])['Engagement_Score']
     .mean()
     .reset_index()
 )
 
-# Get the day with highest average score
-best_day_row = best_day_df.loc[best_day_df['Engagement_Score'].idxmax()]
-best_day = best_day_row['Weekday']
-best_score = round(best_day_row['Engagement_Score'], 2)
+# Sort based on appearance order in data
+weekday_order = weekly_df[['Weekday', 'Created_Time']].drop_duplicates().sort_values('Created_Time')['Weekday']
+avg_day_scores['Weekday'] = pd.Categorical(avg_day_scores['Weekday'], categories=weekday_order, ordered=True)
+avg_day_scores = avg_day_scores.sort_values('Weekday')
 
-st.markdown(f"""
-<div style='
-    background: linear-gradient(145deg, #1f1f1f, #2c2c2c);
-    border: 1px solid rgba(255,255,255,0.08);
+# Display flex cards
+st.markdown("""
+<style>
+.flex-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin: 30px 0;
+}
+.flex-card {
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255,255,255,0.07);
     border-radius: 16px;
-    padding: 25px;
-    margin-top: 30px;
+    padding: 20px;
+    width: 140px;
     text-align: center;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-'>
-    <span style='font-size: 22px; font-weight: 600; color: #FFFFFF;'>📅 Best Day to Post</span><br>
-    <span style='font-size: 28px; font-weight: bold; color: #4CAF50;'>{best_day}</span><br>
-    <span style='font-size: 16px; color: #AAAAAA;'>Avg. Engagement Score: {best_score}</span>
-</div>
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+}
+.flex-card .label {
+    color: #ccc;
+    font-size: 16px;
+    font-weight: 500;
+}
+.flex-card .value {
+    color: #4CAF50;
+    font-size: 22px;
+    font-weight: bold;
+}
+</style>
+<div style='text-align: center; padding-top: 10px; color: white; font-size: 20px; font-weight: 600;'>📊 Engagement Score by Day</div>
+<div class="flex-wrap">
 """, unsafe_allow_html=True)
+
+for _, row in avg_day_scores.iterrows():
+    st.markdown(f"""
+    <div class="flex-card">
+        <div class="label">{row['Weekday']}</div>
+        <div class="value">{round(row['Engagement_Score'], 2)}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
@@ -538,7 +562,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
 
 # Step 1: Select and sort by clicks
 link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactions', 'Permanent_Link']].copy()
