@@ -495,6 +495,53 @@ fig_nested.update_layout(
 )
 st.plotly_chart(fig_nested, use_container_width=False)
 
+# 📆 Create Weekday Column from Created_Time
+weekly_df['Weekday'] = weekly_df['Created_Time'].dt.day_name()
+weekly_df['Weekday_Index'] = weekly_df['Created_Time'].dt.weekday  # 0=Monday
+
+# 📈 Group by weekday and calculate average engagement score
+avg_engagement_by_day = (
+    weekly_df.groupby(['Weekday', 'Weekday_Index'])['Engagement_Score']
+    .mean()
+    .reset_index()
+    .sort_values(by='Weekday_Index')  # Ensures correct weekday order
+)
+
+# 📊 Plot: Best Day to Post by Engagement Score
+fig_best_day = px.bar(
+    avg_engagement_by_day,
+    x='Weekday',
+    y='Engagement_Score',
+    title='Best Day to Post (by Avg. Engagement Score)',
+    labels={'Engagement_Score': 'Avg. Engagement Score'},
+    color='Engagement_Score',
+    color_continuous_scale='Blues'
+)
+
+# Dark theme styling
+fig_best_day.update_layout(
+    plot_bgcolor='rgba(0,0,0,0)',
+    paper_bgcolor='rgba(0,0,0,0)',
+    font=dict(color='#CCCCCC'),
+    xaxis_title='Day of Week',
+    yaxis_title='Average Engagement Score',
+    margin=dict(l=40, r=40, t=60, b=60)
+)
+
+# Show in Streamlit
+st.markdown(
+    """
+    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
+        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
+            📅 Best Day to Post Based on Engagement
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+st.plotly_chart(fig_best_day, use_container_width=True)
+
+
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
     """
