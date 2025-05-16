@@ -432,62 +432,68 @@ clicks_total = post_clicks
 reactions_total = total_likes + total_loves
 visits_total = total_impressions + total_reach
 
-# === Labels and Values ===
+# === Labels & Colors (better color palette for dark mode) ===
 outer_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions', 'Impressions', 'Reach']
 outer_values = [post_clicks, total_likes, total_loves, total_impressions, total_reach]
-outer_colors = ['#4B8BBE', '#306998', '#E06C75', '#A78BFA', '#7C3AED']
+outer_colors = ['#00A8E8', '#3D5AFE', '#F06292', '#FFD166', '#06D6A0']
 
 inner_labels = ['Clicks', 'Reactions', 'Reach + Impressions']
 inner_values = [clicks_total, reactions_total, visits_total]
-inner_colors = ['#1B2838', '#2D2D44', '#364156']
+inner_colors = ['#264653', '#6A4C93', '#2A9D8F']  # Rich & clean for dark theme
 
 # === Chart ===
 fig_nested = go.Figure()
 
-# Outer Ring (Detailed)
+# Outer Ring
 fig_nested.add_trace(go.Pie(
     labels=outer_labels,
     values=outer_values,
     hole=0.5,
-    marker=dict(colors=outer_colors, line=dict(color='#111', width=1)),
-    textinfo='label+percent',
+    marker=dict(colors=outer_colors, line=dict(color='#000', width=1)),
     hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}<extra></extra>',
-    textfont=dict(size=14),
+    textinfo='none',
     domain={'x': [0, 1], 'y': [0, 1]},
-    showlegend=False,
-    direction='clockwise',
-    sort=False
+    showlegend=True,
+    name='Detailed Breakdown'
 ))
 
-# Inner Ring (Groups)
+# Inner Ring
 fig_nested.add_trace(go.Pie(
     labels=inner_labels,
     values=inner_values,
     hole=0.75,
-    marker=dict(colors=inner_colors, line=dict(color='#111', width=1)),
-    textinfo='label+percent',
+    marker=dict(colors=inner_colors, line=dict(color='#000', width=1)),
     hovertemplate='<b>%{label}</b><br>Total: %{value}<br>Percent: %{percent}<extra></extra>',
-    textfont=dict(size=15),
+    textinfo='none',
     domain={'x': [0, 1], 'y': [0, 1]},
-    showlegend=False,
-    direction='clockwise',
-    sort=False
+    showlegend=True,
+    name='Grouped Summary'
 ))
 
 # Layout
 fig_nested.update_layout(
     width=700,
     height=600,
-    margin=dict(t=60, l=40, r=40, b=40),
+    margin=dict(t=60, l=40, r=40, b=60),
     paper_bgcolor='rgba(15,15,15,1)',
     plot_bgcolor='rgba(15,15,15,1)',
-    font=dict(color='#CCCCCC', family='Segoe UI'),
+    font=dict(color='#E0E0E0', family='Segoe UI'),
     annotations=[
         dict(text='Engagement', x=0.5, y=0.5, font_size=18, showarrow=False, font_color='white')
-    ]
+    ],
+    legend=dict(
+        orientation='v',
+        yanchor='middle',
+        y=0.5,
+        xanchor='right',
+        x=1.1,
+        bgcolor='rgba(0,0,0,0)',
+        font=dict(size=12)
+    )
 )
 
 st.plotly_chart(fig_nested, use_container_width=False)
+
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
