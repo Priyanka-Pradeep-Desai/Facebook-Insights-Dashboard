@@ -436,7 +436,7 @@ views_total = impressions + reach
 # Inner ring: detailed breakdown
 inner_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions', 'Impressions', 'Reach']
 inner_values = [post_clicks, like_reactions, love_reactions, impressions, reach]
-inner_colors = ['#C25F9E', '#1877F2', '#D81B60', '#D4B727', '#40C047'] ', 
+inner_colors = ['#C25F9E', '#1877F2', '#D81B60', '#D4B727', '#40C047']
 
 # Outer ring: summary
 outer_labels = ['Clicks', 'Reactions', 'Views']
