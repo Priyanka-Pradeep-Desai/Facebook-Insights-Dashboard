@@ -495,19 +495,21 @@ fig_nested.update_layout(
 )
 st.plotly_chart(fig_nested, use_container_width=False)
 
-# Create weekday column from Created_Time
+# Add Weekday + Index
 weekly_df['Weekday'] = weekly_df['Created_Time'].dt.day_name()
+weekly_df['Weekday_Index'] = weekly_df['Created_Time'].dt.weekday  # 0=Monday
 
-# Calculate average engagement by weekday
+# Group by weekday and calculate average engagement
 best_day_df = (
-    weekly_df.groupby('Weekday')['Engagement_Score']
+    weekly_df.groupby(['Weekday', 'Weekday_Index'])['Engagement_Score']
     .mean()
     .reset_index()
 )
 
-# Get the weekday with the highest average engagement
-best_day = best_day_df.loc[best_day_df['Engagement_Score'].idxmax(), 'Weekday']
-best_score = round(best_day_df['Engagement_Score'].max(), 2)
+# Get the day with highest average score
+best_day_row = best_day_df.loc[best_day_df['Engagement_Score'].idxmax()]
+best_day = best_day_row['Weekday']
+best_score = round(best_day_row['Engagement_Score'], 2)
 
 st.markdown(f"""
 <div style='
