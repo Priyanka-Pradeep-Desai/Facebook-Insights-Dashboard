@@ -495,29 +495,47 @@ fig_nested.update_layout(
 )
 st.plotly_chart(fig_nested, use_container_width=False)
 
+# ✅ Add Day_Name column if not already created
 weekly_df['Day_Name'] = weekly_df['Created_Time'].dt.day_name()
 
+# ✅ Calculate Engagement Score if not already calculated
+if 'Engagement_Score' not in weekly_df.columns:
+    weekly_df['Engagement_Score'] = (
+        weekly_df['Total_Impressions'] +
+        weekly_df['Total_Reach'] +
+        weekly_df['Total_Like_Reactions'] +
+        weekly_df['Total_Love_Reactions'] +
+        weekly_df['Post_Clicks']
+    )
+
+# ✅ Get weekday order based on appearance in data
 weekday_order = (
     weekly_df[['Day_Name', 'Created_Time']]
     .drop_duplicates()
     .sort_values('Created_Time')
-    .drop_duplicates(subset='Day_Name', keep='first')  # 👈 ensures uniqueness
-    ['Day_Name']
+    .drop_duplicates(subset='Day_Name', keep='first')['Day_Name']
     .tolist()
 )
 
+# ✅ Compute average engagement by weekday
+avg_engagement_by_day = (
+    weekly_df.groupby('Day_Name')['Engagement_Score']
+    .mean()
+    .reset_index()
+)
+
+# ✅ Categorize + Sort weekdays based on appearance order
 avg_engagement_by_day['Day_Name'] = pd.Categorical(
-    avg_engagement_by_day['Day_Name'],
-    categories=weekday_order,
-    ordered=True
+    avg_engagement_by_day['Day_Name'], categories=weekday_order, ordered=True
 )
 avg_engagement_by_day = avg_engagement_by_day.sort_values('Day_Name')
-# Get the best day (highest avg. engagement score)
+
+# ✅ Get best day and score
 best_row = avg_engagement_by_day.loc[avg_engagement_by_day['Engagement_Score'].idxmax()]
 best_day = best_row['Day_Name']
 best_score = round(best_row['Engagement_Score'], 2)
 
-# Display card
+# ✅ Display it
 st.markdown(f"""
 <div style='
     background: linear-gradient(145deg, #1f1f1f, #2c2c2c);
@@ -533,7 +551,6 @@ st.markdown(f"""
     <span style='font-size: 16px; color: #AAAAAA;'>Avg. Engagement Score: {best_score}</span>
 </div>
 """, unsafe_allow_html=True)
-
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
