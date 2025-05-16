@@ -421,38 +421,34 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Get individual components
+# === Engagement Values ===
 post_clicks = int(weekly_df['Post_Clicks'].sum())
 total_likes = int(weekly_df['Total_Like_Reactions'].sum())
 total_loves = int(weekly_df['Total_Love_Reactions'].sum())
 total_impressions = int(weekly_df['Total_Impressions'].sum())
 total_reach = int(weekly_df['Total_Reach'].sum())
 
-# Group totals
-total_clicks = post_clicks
-total_reactions = total_likes + total_loves
-total_visits = total_impressions + total_reach
+# Grouped
+clicks_total = post_clicks
+reactions_total = total_likes + total_loves
+visits_total = total_impressions + total_reach
 
-# Outer ring – fine-grained breakdown
+# === Labels & Colors ===
 outer_labels = [
     '🖱 Post Clicks', '👍 Like Reactions', '❤️ Love Reactions',
     '👁 Impressions', '📢 Reach'
 ]
-outer_values = [
-    post_clicks, total_likes, total_loves,
-    total_impressions, total_reach
-]
+outer_values = [post_clicks, total_likes, total_loves, total_impressions, total_reach]
 outer_colors = ['#5DADE2', '#1877F2', '#D81B60', '#FFB300', '#43A047']
 
-# Inner ring – grouped categories
-inner_labels = ['Clicks', 'Reactions', 'Impressions+Reach']
-inner_values = [total_clicks, total_reactions, total_visits]
+inner_labels = ['🖱 Clicks', '👍❤️ Reactions', '👁📢 Impressions+Reach']
+inner_values = [clicks_total, reactions_total, visits_total]
 inner_colors = ['#2980B9', '#8E44AD', '#2ECC71']
 
-# Build figure
+# === Create the Nested Donut Chart ===
 fig_nested = go.Figure()
 
-# Outer donut (detailed components)
+# Outer ring (detailed components)
 fig_nested.add_trace(go.Pie(
     labels=outer_labels,
     values=outer_values,
@@ -460,13 +456,14 @@ fig_nested.add_trace(go.Pie(
     direction='clockwise',
     sort=False,
     textinfo='label+percent',
-    hoverinfo='label+percent+value',
-    marker=dict(colors=outer_colors),
+    hoverinfo='label+value+percent',
+    textfont=dict(size=14),
+    marker=dict(colors=outer_colors, line=dict(color='#111', width=1)),
     domain={'x': [0, 1], 'y': [0, 1]},
     showlegend=False
 ))
 
-# Inner donut (grouped)
+# Inner ring (grouped categories)
 fig_nested.add_trace(go.Pie(
     labels=inner_labels,
     values=inner_values,
@@ -474,26 +471,47 @@ fig_nested.add_trace(go.Pie(
     direction='clockwise',
     sort=False,
     textinfo='label+percent',
-    hoverinfo='label+percent+value',
-    marker=dict(colors=inner_colors),
+    hoverinfo='label+value+percent',
+    textfont=dict(size=16),
+    marker=dict(colors=inner_colors, line=dict(color='#111', width=1)),
     domain={'x': [0, 1], 'y': [0, 1]},
     showlegend=False
 ))
 
-# Style layout
+# Layout polish
 fig_nested.update_layout(
     width=650,
-    height=500,
-    margin=dict(t=40, l=40, r=40, b=40),
+    height=550,
+    margin=dict(t=60, l=40, r=40, b=40),
     paper_bgcolor='rgba(15,15,15,1)',
     plot_bgcolor='rgba(15,15,15,1)',
     font=dict(color='#CCCCCC', family='Segoe UI'),
     annotations=[
-        dict(text='Engagement', x=0.5, y=0.5, font_size=16, showarrow=False, font_color='white')
-    ]
+        dict(text='Engagement', x=0.5, y=0.5, font_size=18, showarrow=False, font_color='white')
+    ],
+    legend=dict(
+        orientation='h',
+        yanchor='bottom',
+        y=-0.2,
+        xanchor='center',
+        x=0.5,
+        font=dict(size=13)
+    )
 )
 
+# === Optional: Add dummy trace for custom legend ===
+fig_nested.add_trace(go.Scatter(
+    x=[None], y=[None],
+    mode='markers',
+    marker=dict(size=0),
+    name='🖱 Clicks = Post Clicks<br>👍❤️ Reactions = Like + Love<br>👁📢 = Impressions + Reach',
+    hoverinfo='skip',
+    showlegend=True
+))
+
+# Display chart
 st.plotly_chart(fig_nested, use_container_width=False)
+
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
