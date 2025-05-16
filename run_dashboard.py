@@ -495,6 +495,63 @@ fig_nested.update_layout(
 )
 st.plotly_chart(fig_nested, use_container_width=False)
 
+import plotly.express as px
+import pandas as pd
+
+# === Step 1: Pull values from your dataframe
+post_clicks = int(weekly_df['Post_Clicks'].sum())
+like_reactions = int(weekly_df['Total_Like_Reactions'].sum())
+love_reactions = int(weekly_df['Total_Love_Reactions'].sum())
+impressions = int(weekly_df['Total_Impressions'].sum())
+reach = int(weekly_df['Total_Reach'].sum())
+
+# === Step 2: Build hierarchy dataframe
+df = pd.DataFrame({
+    'Category': [
+        'Clicks',
+        'Reactions', 'Reactions',
+        'Views', 'Views'
+    ],
+    'Subcategory': [
+        'Post Clicks',
+        'Like Reactions', 'Love Reactions',
+        'Impressions', 'Reach'
+    ],
+    'Value': [
+        post_clicks,
+        like_reactions, love_reactions,
+        impressions, reach
+    ]
+})
+
+# === Step 3: Create sunburst chart
+fig = px.sunburst(
+    df,
+    path=['Category', 'Subcategory'],
+    values='Value',
+    color='Category',
+    color_discrete_map={
+        'Clicks': '#4C78A8',
+        'Reactions': '#A05D56',
+        'Views': '#72B7B2'
+    }
+)
+
+# === Step 4: Style for dark mode
+fig.update_layout(
+    margin=dict(t=60, l=10, r=10, b=10),
+    paper_bgcolor='rgba(15,15,15,1)',
+    plot_bgcolor='rgba(15,15,15,1)',
+    font=dict(color='#EEEEEE', family='Segoe UI'),
+)
+
+# Optional: Make center empty (like donut)
+fig.update_traces(insidetextorientation='radial', textinfo='label+percent parent+value')
+
+# === Step 5: Show in Streamlit
+st.plotly_chart(fig, use_container_width=True)
+
+
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
     """
