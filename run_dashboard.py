@@ -422,57 +422,54 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# === Aggregated data ===
+# === Data ===
 post_clicks = int(weekly_df['Post_Clicks'].sum())
 like_reactions = int(weekly_df['Total_Like_Reactions'].sum())
 love_reactions = int(weekly_df['Total_Love_Reactions'].sum())
 impressions = int(weekly_df['Total_Impressions'].sum())
 reach = int(weekly_df['Total_Reach'].sum())
 
-# === Group totals ===
 clicks_total = post_clicks
 reactions_total = like_reactions + love_reactions
 views_total = impressions + reach
 
-# === Data setup ===
-
-# Inner ring (group summary)
+# === Inner ring (summary)
 inner_labels = ['Clicks', 'Reactions', 'Views']
 inner_values = [clicks_total, reactions_total, views_total]
 inner_colors = ['#4C78A8', '#A05D56', '#72B7B2']
 
-# Outer ring (details)
+# === Outer ring (details)
 outer_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions', 'Impressions', 'Reach']
 outer_values = [post_clicks, like_reactions, love_reactions, impressions, reach]
-outer_colors = ['#6B8FD6', '#C084F5', '#EF798A', '#F4C95D', '#7CD992']
+outer_colors = ['#6B8FD6', '#C084F5', '#EF798A', '#FFD166', '#7CD992']
 
-# === Chart build ===
+# === Chart setup
 fig_nested = go.Figure()
 
-# Inner ring – should be rendered **after** so it's under
-fig_nested.add_trace(go.Pie(
-    labels=inner_labels,
-    values=inner_values,
-    hole=0.65,
-    marker=dict(colors=inner_colors, line=dict(color='#111', width=1)),
-    hovertemplate='<b>%{label}</b><br>Total: %{value}<br>Percent: %{percent}<extra></extra>',
-    textinfo='none',
-    domain={'x': [0, 1], 'y': [0, 1]},
-    showlegend=True,
-    name='Groups'
-))
-
-# Outer ring – rendered first so it's visible on top
+# Step 1: Draw the **outer ring first** (smaller hole)
 fig_nested.add_trace(go.Pie(
     labels=outer_labels,
     values=outer_values,
-    hole=0.45,
+    hole=0.4,
     marker=dict(colors=outer_colors, line=dict(color='#111', width=1)),
     hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}<extra></extra>',
     textinfo='none',
     domain={'x': [0, 1], 'y': [0, 1]},
     showlegend=True,
-    name='Details'
+    name='Detailed Breakdown'
+))
+
+# Step 2: Draw the **inner ring second** (larger hole)
+fig_nested.add_trace(go.Pie(
+    labels=inner_labels,
+    values=inner_values,
+    hole=0.7,
+    marker=dict(colors=inner_colors, line=dict(color='#111', width=1)),
+    hovertemplate='<b>%{label}</b><br>Total: %{value}<br>Percent: %{percent}<extra></extra>',
+    textinfo='none',
+    domain={'x': [0, 1], 'y': [0, 1]},
+    showlegend=True,
+    name='Summary Group'
 ))
 
 # Layout
@@ -497,7 +494,7 @@ fig_nested.update_layout(
     )
 )
 
-# Show the chart
+# Display
 st.plotly_chart(fig_nested, use_container_width=False)
 
 # 🔗 Clickable Post Table – Preserves original look, polished
