@@ -432,16 +432,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Prepare values
+# Define values
 values = [total_clicks, total_reactions, total_clicks, total_likes, total_loves]
 labels = ['Clicks', 'Reactions', 'Post Clicks', 'Like Reactions', 'Love Reactions']
 parents = ['', '', 'Clicks', 'Reactions', 'Reactions']
-total = sum([total_clicks, total_reactions])  # For top-level engagement share
 
-# Format hover and text as percentages
-percent_format = [f"{(v / total) * 100:.1f}%" if i < 2 else "" for i, v in enumerate(values)]
-
-# Create figure
+# Create sunburst figure
 fig_donut = go.Figure(go.Sunburst(
     labels=labels,
     parents=parents,
@@ -457,7 +453,7 @@ fig_donut = go.Figure(go.Sunburst(
         ],
         line=dict(color='rgba(255,255,255,0.1)', width=2)
     ),
-    hovertemplate='<b>%{label}</b><br>Percent: %{percentRoot:.1%}<extra></extra>',
+    hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent of Parent: %{percentParent:.1%}<extra></extra>',
     insidetexttemplate='%{label}<br>%{percentParent:.1%}',
     insidetextorientation='radial',
     maxdepth=2
@@ -465,7 +461,7 @@ fig_donut = go.Figure(go.Sunburst(
 
 fig_donut.update_layout(
     margin=dict(t=20, l=10, r=10, b=20),
-    width=600,  # Reduce width here
+    width=600,  # Slimmer chart
     height=500,
     paper_bgcolor='rgba(15,15,15,1)',
     plot_bgcolor='rgba(15,15,15,1)',
@@ -474,6 +470,7 @@ fig_donut.update_layout(
 )
 
 st.plotly_chart(fig_donut, use_container_width=False)
+
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
