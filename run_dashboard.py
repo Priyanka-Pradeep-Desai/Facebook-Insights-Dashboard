@@ -447,12 +447,12 @@ views_total = impressions + reach
 # === Inner ring: detailed breakdown
 inner_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions', 'Impressions', 'Reach']
 inner_values = [post_clicks, like_reactions, love_reactions, impressions, reach]
-inner_colors = ['#1f77b4', '#5DADE2', '#d62728', '#FFD700', '#00FF7F']
+inner_colors = ['#3399FF', '#5DADE2', '#E76F51', '#FFD700', '#F4A261']  # no green
 
 # === Outer ring: summary
 outer_labels = ['Clicks', 'Reactions', 'Views']
 outer_values = [clicks_total, reactions_total, views_total]
-outer_colors = ['#3399FF', '#FF6F61', '#28B463']
+outer_colors = ['#4682B4', '#D26466', '#F1C40F']
 
 # === Chart build
 fig_nested = go.Figure()
