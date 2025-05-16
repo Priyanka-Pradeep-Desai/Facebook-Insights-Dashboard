@@ -563,7 +563,7 @@ fig_nested.add_trace(go.Pie(
 # Layout
 fig_nested.update_layout(
     width=750,
-    height=600,
+    height=500,
     margin=dict(t=60, l=40, r=40, b=60),
     plot_bgcolor='rgba(0,0,0,0)',
     paper_bgcolor='rgba(0,0,0,0)',
