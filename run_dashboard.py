@@ -410,6 +410,7 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 #Chart 4: Donut Nested Pie chart
+# Chart title
 st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
@@ -421,52 +422,52 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# === Values ===
+# === Aggregated data ===
 post_clicks = int(weekly_df['Post_Clicks'].sum())
-total_likes = int(weekly_df['Total_Like_Reactions'].sum())
-total_loves = int(weekly_df['Total_Love_Reactions'].sum())
-total_impressions = int(weekly_df['Total_Impressions'].sum())
-total_reach = int(weekly_df['Total_Reach'].sum())
+like_reactions = int(weekly_df['Total_Like_Reactions'].sum())
+love_reactions = int(weekly_df['Total_Love_Reactions'].sum())
+impressions = int(weekly_df['Total_Impressions'].sum())
+reach = int(weekly_df['Total_Reach'].sum())
 
+# === Group totals ===
 clicks_total = post_clicks
-reactions_total = total_likes + total_loves
-views_total = total_impressions + total_reach
+reactions_total = like_reactions + love_reactions
+views_total = impressions + reach
 
-# === Colors (updated, muted dark-friendly palette)
-summary_colors = ['#3A86FF', '#8338EC', '#06D6A0']       # Clicks, Reactions, Views
-detail_colors = ['#577590', '#5E60CE', '#F15BB5', '#FFD166', '#80ED99']  # Post Clicks, Likes, Loves, Impressions, Reach
+# === Data setup ===
 
-# === Labels and values
-# Inner ring = summary
+# Inner ring (group summary)
 inner_labels = ['Clicks', 'Reactions', 'Views']
 inner_values = [clicks_total, reactions_total, views_total]
+inner_colors = ['#4C78A8', '#A05D56', '#72B7B2']
 
-# Outer ring = detailed
+# Outer ring (details)
 outer_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions', 'Impressions', 'Reach']
-outer_values = [post_clicks, total_likes, total_loves, total_impressions, total_reach]
+outer_values = [post_clicks, like_reactions, love_reactions, impressions, reach]
+outer_colors = ['#6B8FD6', '#C084F5', '#EF798A', '#F4C95D', '#7CD992']
 
-# === Build figure
+# === Chart build ===
 fig_nested = go.Figure()
 
-# Inner Ring (summary - should be bottom layer)
+# Inner ring – should be rendered **after** so it's under
 fig_nested.add_trace(go.Pie(
     labels=inner_labels,
     values=inner_values,
-    hole=0.6,
-    marker=dict(colors=summary_colors, line=dict(color='#111', width=1)),
+    hole=0.65,
+    marker=dict(colors=inner_colors, line=dict(color='#111', width=1)),
     hovertemplate='<b>%{label}</b><br>Total: %{value}<br>Percent: %{percent}<extra></extra>',
     textinfo='none',
     domain={'x': [0, 1], 'y': [0, 1]},
     showlegend=True,
-    name='Summary'
+    name='Groups'
 ))
 
-# Outer Ring (details - appears on top visually)
+# Outer ring – rendered first so it's visible on top
 fig_nested.add_trace(go.Pie(
     labels=outer_labels,
     values=outer_values,
-    hole=0.3,
-    marker=dict(colors=detail_colors, line=dict(color='#111', width=1)),
+    hole=0.45,
+    marker=dict(colors=outer_colors, line=dict(color='#111', width=1)),
     hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}<extra></extra>',
     textinfo='none',
     domain={'x': [0, 1], 'y': [0, 1]},
@@ -474,9 +475,9 @@ fig_nested.add_trace(go.Pie(
     name='Details'
 ))
 
-# === Layout
+# Layout
 fig_nested.update_layout(
-    width=700,
+    width=750,
     height=600,
     margin=dict(t=60, l=40, r=40, b=60),
     paper_bgcolor='rgba(15,15,15,1)',
@@ -496,6 +497,7 @@ fig_nested.update_layout(
     )
 )
 
+# Show the chart
 st.plotly_chart(fig_nested, use_container_width=False)
 
 # 🔗 Clickable Post Table – Preserves original look, polished
