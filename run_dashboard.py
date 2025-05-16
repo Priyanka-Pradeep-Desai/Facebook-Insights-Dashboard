@@ -409,6 +409,17 @@ fig_bar.update_traces(
 # Step 6: Show in Streamlit
 st.plotly_chart(fig_bar, use_container_width=True)
 
+st.markdown(
+    """
+    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
+        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
+            📈 Conversion & Emotional KPIs
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 click_through_rate = (total_clicks / total_impressions) * 100 if total_impressions > 0 else 0
 st.markdown(f"""
     <div class="kpi-item">
@@ -433,6 +444,58 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
+st.markdown(f"""
+<style>
+.kpi-flex {{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 20px;
+}}
+.kpi-item {{
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    width: 180px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 10px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}}
+.kpi-item:hover {{
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+}}
+.kpi-label {{
+    font-size: 18px;
+    font-weight: 500;
+    color: #cccccc;
+}}
+.kpi-value {{
+    font-size: 30px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-top: 6px;
+}}
+</style>
+
+<div class="kpi-flex">
+    <div class="kpi-item">
+        <div class="kpi-label">🚀 Click-Through Rate</div>
+        <div class="kpi-value">{click_through_rate:.2f}%</div>
+    </div>
+    <div class="kpi-item">
+        <div class="kpi-label">💖 Emotional Engagement Multiplier</div>
+        <div class="kpi-value">{eem_score:,.2f}</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 #Chart 4: Donut Nested Pie chart
 st.markdown(
