@@ -451,6 +451,10 @@ st.markdown(f"""
     padding: 12px;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.25);
 }}
+.kpi-box:hover {{
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+}}
 .kpi-title {{
     font-size: 16px;
     font-weight: 600;
@@ -464,25 +468,6 @@ st.markdown(f"""
     font-weight: 700;
     color: #ffffff;
     margin-bottom: 4px;
-}}
-.kpi-item {{
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 16px;
-    width: 180px;
-    height: 120px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 10px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}}
-.kpi-item:hover {{
-    transform: scale(1.05);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
 }}
 .kpi-desc {{
     font-size: 12px;
@@ -511,8 +496,6 @@ st.markdown(f"""
     </div>
 </div>
 """, unsafe_allow_html=True)
-
-
 
 #Chart 4: Donut Nested Pie chart
 st.markdown(
@@ -660,7 +643,7 @@ st.markdown(f"""
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
     """
-    <div style='text-align: center; padding-top: 30px; padding-bottom: 10px;'>
+    <div style='text-align: center; padding-top: 30px; padding-bottom: 20px;'>
         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
             🔗 Top Links Clicked Posts
         </span>
