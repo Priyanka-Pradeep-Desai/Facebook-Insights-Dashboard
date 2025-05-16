@@ -410,7 +410,6 @@ fig_bar.update_traces(
 st.plotly_chart(fig_bar, use_container_width=True)
 
 #Chart 4: Donut Nested Pie chart
-# Chart title
 st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
@@ -433,43 +432,44 @@ clicks_total = post_clicks
 reactions_total = like_reactions + love_reactions
 views_total = impressions + reach
 
-# === Inner ring (summary)
-inner_labels = ['Clicks', 'Reactions', 'Views']
-inner_values = [clicks_total, reactions_total, views_total]
-inner_colors = ['#4C78A8', '#A05D56', '#72B7B2']
+# === Labels and colors
+# Inner ring: detailed breakdown
+inner_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions', 'Impressions', 'Reach']
+inner_values = [post_clicks, like_reactions, love_reactions, impressions, reach]
+inner_colors = ['#6B8FD6', '#C084F5', '#EF798A', '#FFD166', '#7CD992']
 
-# === Outer ring (details)
-outer_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions', 'Impressions', 'Reach']
-outer_values = [post_clicks, like_reactions, love_reactions, impressions, reach]
-outer_colors = ['#6B8FD6', '#C084F5', '#EF798A', '#FFD166', '#7CD992']
+# Outer ring: summary
+outer_labels = ['Clicks', 'Reactions', 'Views']
+outer_values = [clicks_total, reactions_total, views_total]
+outer_colors = ['#4C78A8', '#A05D56', '#72B7B2']
 
-# === Chart setup
+# === Chart build
 fig_nested = go.Figure()
 
-# Step 1: Draw the **outer ring first** (smaller hole)
+# Outer ring (summary)
 fig_nested.add_trace(go.Pie(
     labels=outer_labels,
     values=outer_values,
     hole=0.4,
     marker=dict(colors=outer_colors, line=dict(color='#111', width=1)),
-    hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}<extra></extra>',
-    textinfo='none',
-    domain={'x': [0, 1], 'y': [0, 1]},
-    showlegend=True,
-    name='Detailed Breakdown'
-))
-
-# Step 2: Draw the **inner ring second** (larger hole)
-fig_nested.add_trace(go.Pie(
-    labels=inner_labels,
-    values=inner_values,
-    hole=0.7,
-    marker=dict(colors=inner_colors, line=dict(color='#111', width=1)),
     hovertemplate='<b>%{label}</b><br>Total: %{value}<br>Percent: %{percent}<extra></extra>',
     textinfo='none',
     domain={'x': [0, 1], 'y': [0, 1]},
     showlegend=True,
     name='Summary Group'
+))
+
+# Inner ring (detailed)
+fig_nested.add_trace(go.Pie(
+    labels=inner_labels,
+    values=inner_values,
+    hole=0.7,
+    marker=dict(colors=inner_colors, line=dict(color='#111', width=1)),
+    hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}<extra></extra>',
+    textinfo='none',
+    domain={'x': [0, 1], 'y': [0, 1]},
+    showlegend=True,
+    name='Detailed Breakdown'
 ))
 
 # Layout
@@ -493,8 +493,6 @@ fig_nested.update_layout(
         font=dict(size=13)
     )
 )
-
-# Display
 st.plotly_chart(fig_nested, use_container_width=False)
 
 # 🔗 Clickable Post Table – Preserves original look, polished
