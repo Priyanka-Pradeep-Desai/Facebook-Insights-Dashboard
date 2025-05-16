@@ -505,22 +505,6 @@ best_day_df = (
     .reset_index()
 )
 
-st.markdown(f"""
-<div style='
-    background: linear-gradient(145deg, #1f1f1f, #2c2c2c);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px;
-    padding: 25px;
-    margin-top: 30px;
-    text-align: center;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-'>
-    <span style='font-size: 22px; font-weight: 600; color: #FFFFFF;'>📅 Best Day to Post</span><br>
-    <span style='font-size: 28px; font-weight: bold; color: #4CAF50;'>{best_day}</span><br>
-    <span style='font-size: 16px; color: #AAAAAA;'>Avg. Engagement Score: {best_score}</span>
-</div>
-""", unsafe_allow_html=True)
-
 # Get the weekday with the highest average engagement
 best_day = best_day_df.loc[best_day_df['Engagement_Score'].idxmax(), 'Weekday']
 best_score = round(best_day_df['Engagement_Score'].max(), 2)
@@ -536,6 +520,22 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+st.markdown(f"""
+<div style='
+    background: linear-gradient(145deg, #1f1f1f, #2c2c2c);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 25px;
+    margin-top: 30px;
+    text-align: center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+'>
+    <span style='font-size: 22px; font-weight: 600; color: #FFFFFF;'>📅 Best Day to Post</span><br>
+    <span style='font-size: 28px; font-weight: bold; color: #4CAF50;'>{best_day}</span><br>
+    <span style='font-size: 16px; color: #AAAAAA;'>Avg. Engagement Score: {best_score}</span>
+</div>
+""", unsafe_allow_html=True)
 
 # Step 1: Select and sort by clicks
 link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactions', 'Permanent_Link']].copy()
