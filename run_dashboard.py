@@ -495,64 +495,60 @@ fig_nested.update_layout(
 )
 st.plotly_chart(fig_nested, use_container_width=False)
 
-# === Sample values from your data
+# === Real values from your data
 post_clicks = int(weekly_df['Post_Clicks'].sum())
 like_reactions = int(weekly_df['Total_Like_Reactions'].sum())
 love_reactions = int(weekly_df['Total_Love_Reactions'].sum())
 impressions = int(weekly_df['Total_Impressions'].sum())
 reach = int(weekly_df['Total_Reach'].sum())
 
-# === Hierarchical data structure
+# === Hierarchical sunburst structure with a root
 df = pd.DataFrame({
-    'Category': [
-        'Clicks',
-        'Reactions', 'Reactions',
-        'Views', 'Views'
-    ],
-    'Subcategory': [
-        'Post Clicks',
-        'Like Reactions', 'Love Reactions',
-        'Impressions', 'Reach'
-    ],
-    'Value': [
-        post_clicks,
-        like_reactions, love_reactions,
-        impressions, reach
-    ]
+    'Root': ['Engagement'] * 5,
+    'Category': ['Clicks', 'Reactions', 'Reactions', 'Views', 'Views'],
+    'Subcategory': ['Post Clicks', 'Like Reactions', 'Love Reactions', 'Impressions', 'Reach'],
+    'Value': [post_clicks, like_reactions, love_reactions, impressions, reach]
 })
 
-# === Sunburst chart with donut styling
+# === Color assignment
+color_map = {
+    'Post Clicks': '#6B8FD6',
+    'Like Reactions': '#C084F5',
+    'Love Reactions': '#EF798A',
+    'Impressions': '#FFD166',
+    'Reach': '#7CD992',
+    'Clicks': '#4C78A8',
+    'Reactions': '#A05D56',
+    'Views': '#72B7B2'
+}
+
+# === Sunburst with donut-style layout
 fig = px.sunburst(
     df,
-    path=['Category', 'Subcategory'],
+    path=['Root', 'Category', 'Subcategory'],
     values='Value',
-    color='Category',
-    color_discrete_map={
-        'Clicks': '#4C78A8',
-        'Reactions': '#A05D56',
-        'Views': '#72B7B2'
-    }
+    color='Subcategory',
+    color_discrete_map=color_map
 )
 
-# === Format for dark donut style
+# === Layout: dark mode, donut style
 fig.update_traces(
-    hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percentParent}<extra></extra>',
+    hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Parent: %{parent}<br>% of Parent: %{percentParent}<extra></extra>',
     insidetextorientation='radial',
-    textinfo='none',
-    root_color='rgba(0,0,0,0)'
+    textinfo='none'
 )
 
 fig.update_layout(
-    margin=dict(t=60, l=40, r=40, b=40),
+    margin=dict(t=60, l=40, r=40, b=60),
     paper_bgcolor='rgba(15,15,15,1)',
     plot_bgcolor='rgba(15,15,15,1)',
     font=dict(color='white', family='Segoe UI'),
-    uniformtext=dict(minsize=12, mode='hide')
+    uniformtext=dict(minsize=12, mode='hide'),
+    sunburstcolorway=list(color_map.values())
 )
 
-# Display in Streamlit
+# === Show in Streamlit
 st.plotly_chart(fig, use_container_width=True)
-
 
 
 # 🔗 Clickable Post Table – Preserves original look, polished
