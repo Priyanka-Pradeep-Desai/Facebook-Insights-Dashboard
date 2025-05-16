@@ -495,6 +495,8 @@ fig_nested.update_layout(
 )
 st.plotly_chart(fig_nested, use_container_width=False)
 
+weekly_df['Weekday'] = weekly_df['Created_Time'].dt.day_name()
+
 # Group by weekday and show average engagement (already have Weekday in weekly_df)
 avg_day_scores = (
     weekly_df.groupby(['Weekday'])['Engagement_Score']
