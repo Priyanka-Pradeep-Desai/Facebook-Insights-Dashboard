@@ -465,6 +465,21 @@ st.markdown(f"""
     color: #ffffff;
     margin-bottom: 4px;
 }}
+.kpi-item {{
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    width: 180px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 10px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}}
 .kpi-item:hover {{
     transform: scale(1.05);
     box-shadow: 0 8px 20px rgba(0,0,0,0.5);
