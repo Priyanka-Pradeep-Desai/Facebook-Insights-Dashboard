@@ -413,26 +413,34 @@ st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-             👍 Nested Donut Pie Chart: Engagement Breakdown
+            🍩 Nested Donut Chart – Engagement Breakdown
         </span>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# Nested Donut Pie Chart: Engagement Breakdown
+#Chart 4: Donut Nested Pie chart
 fig_donut = go.Figure(go.Sunburst(
-    labels=['Clicks', 'Reactions', 'Post Clicks', 'Like Reactions', 'Love Reactions'],
-    parents=['', '', 'Clicks', 'Reactions', 'Reactions'],
-    values=[total_clicks, total_reactions, total_clicks, total_likes, total_loves],
+    labels=['Total Engagement', 'Clicks', 'Reactions', 'Post Clicks', 'Like Reactions', 'Love Reactions'],
+    parents=['', 'Total Engagement', 'Total Engagement', 'Clicks', 'Reactions', 'Reactions'],
+    values=[
+        total_clicks + total_reactions,  # Total Engagement value
+        total_clicks,
+        total_reactions,
+        total_clicks,
+        total_likes,
+        total_loves
+    ],
     branchvalues="total",
     marker=dict(
         colors=[
-            '#2C3E50',       # Inner Clicks
-            '#424242',       # Inner Reactions
-            '#5DADE2',       # Post Clicks (soft blue)
-            '#1877F2',       # Like Reactions (Facebook blue)
-            '#D81B60'        # Love Reactions (magenta)
+            '#34495E',      # Total Engagement
+            '#2C3E50',      # Clicks
+            '#424242',      # Reactions
+            '#5DADE2',      # Post Clicks
+            '#1877F2',      # Like Reactions
+            '#D81B60'       # Love Reactions
         ],
         line=dict(color='rgba(255,255,255,0.1)', width=2)
     ),
@@ -442,15 +450,15 @@ fig_donut = go.Figure(go.Sunburst(
 ))
 
 fig_donut.update_layout(
-    margin=dict(t=20, l=10, r=10, b=20),
-    paper_bgcolor='rgba(15,15,15,1)',
-    plot_bgcolor='rgba(15,15,15,1)',
-    font=dict(color='#CCCCCC', family='Segoe UI'),
-    uniformtext=dict(minsize=12, mode='hide')
+    margin=dict(t=30, l=10, r=10, b=10),
+    paper_bgcolor='rgba(30,30,30,1)',
+    plot_bgcolor='rgba(30,30,30,1)',
+    font=dict(color='#CCCCCC', family='Segoe UI', size=13),
+    uniformtext=dict(minsize=12, mode='hide'),
+    height=500,
 )
 
 st.plotly_chart(fig_donut, use_container_width=True)
-
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
