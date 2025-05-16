@@ -432,36 +432,40 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Define values
-values = [total_clicks, total_reactions, total_clicks, total_likes, total_loves]
-labels = ['Clicks', 'Reactions', 'Post Clicks', 'Like Reactions', 'Love Reactions']
-parents = ['', '', 'Clicks', 'Reactions', 'Reactions']
+# 🔢 Sum the components of engagement
+post_clicks = int(weekly_df['Post_Clicks'].sum())
+total_likes = int(weekly_df['Total_Like_Reactions'].sum())
+total_loves = int(weekly_df['Total_Love_Reactions'].sum())
 
-# Create sunburst figure
+engagement_total = post_clicks + total_likes + total_loves
+
+# Labels and values
+labels = ['Engagement', 'Post Clicks', 'Like Reactions', 'Love Reactions']
+parents = ['', 'Engagement', 'Engagement', 'Engagement']
+values = [0, post_clicks, total_likes, total_loves]  # Engagement root is 0, children add up
+
 fig_donut = go.Figure(go.Sunburst(
     labels=labels,
     parents=parents,
     values=values,
-    branchvalues="total",
-    marker=dict(
-        colors=[
-            '#2C3E50',       # Clicks
-            '#424242',       # Reactions
-            '#5DADE2',       # Post Clicks
-            '#1877F2',       # Like Reactions
-            '#D81B60'        # Love Reactions
-        ],
-        line=dict(color='rgba(255,255,255,0.1)', width=2)
-    ),
-    hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent of Parent: %{percentParent:.1%}<extra></extra>',
+    branchvalues='total',
+    hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent of Engagement: %{percentParent:.1%}<extra></extra>',
     insidetexttemplate='%{label}<br>%{percentParent:.1%}',
     insidetextorientation='radial',
-    maxdepth=2
+    marker=dict(
+        colors=[
+            '#2C3E50',  # Engagement
+            '#5DADE2',  # Post Clicks
+            '#1877F2',  # Likes
+            '#D81B60'   # Loves
+        ],
+        line=dict(color='rgba(255,255,255,0.1)', width=2)
+    )
 ))
 
 fig_donut.update_layout(
     margin=dict(t=20, l=10, r=10, b=20),
-    width=600,  # Slimmer chart
+    width=600,  # Adjusted for slimmer layout
     height=500,
     paper_bgcolor='rgba(15,15,15,1)',
     plot_bgcolor='rgba(15,15,15,1)',
