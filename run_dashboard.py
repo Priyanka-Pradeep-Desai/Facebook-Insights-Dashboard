@@ -495,6 +495,8 @@ fig_nested.update_layout(
 )
 st.plotly_chart(fig_nested, use_container_width=False)
 
+weekly_df['Day_Name'] = weekly_df['Created_Time'].dt.day_name()
+
 weekday_order = (
     weekly_df[['Day_Name', 'Created_Time']]
     .drop_duplicates()
