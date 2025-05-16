@@ -379,8 +379,8 @@ fig_bar = px.bar(
 
 # Step 4: Dark theme + styling
 fig_bar.update_layout(
-    plot_bgcolor='rgba(20,20,20,1)',
-    paper_bgcolor='rgba(30,30,30,1)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    paper_bgcolor='rgba(0,0,0,0)',
     title_font=dict(size=20, color='#FFFFFF'),
     font=dict(color='#CCCCCC', size=13),
     margin=dict(l=100, r=40, t=80, b=60),
