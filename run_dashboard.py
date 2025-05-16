@@ -509,18 +509,6 @@ best_day_df = (
 best_day = best_day_df.loc[best_day_df['Engagement_Score'].idxmax(), 'Weekday']
 best_score = round(best_day_df['Engagement_Score'].max(), 2)
 
-# 🔗 Clickable Post Table – Preserves original look, polished
-st.markdown(
-    """
-    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
-        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-            🔗 Top Links Clicked Posts
-        </span>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
 st.markdown(f"""
 <div style='
     background: linear-gradient(145deg, #1f1f1f, #2c2c2c);
@@ -536,6 +524,19 @@ st.markdown(f"""
     <span style='font-size: 16px; color: #AAAAAA;'>Avg. Engagement Score: {best_score}</span>
 </div>
 """, unsafe_allow_html=True)
+
+# 🔗 Clickable Post Table – Preserves original look, polished
+st.markdown(
+    """
+    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
+        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
+            🔗 Top Links Clicked Posts
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 
 # Step 1: Select and sort by clicks
 link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactions', 'Permanent_Link']].copy()
