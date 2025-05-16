@@ -425,43 +425,55 @@ st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-             👍 Nested Donut Pie Chart: Engagement Breakdown
+            👍 Nested Donut Pie Chart: Engagement Breakdown
         </span>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# Nested Donut Pie Chart: Engagement Breakdown
+# Prepare values
+values = [total_clicks, total_reactions, total_clicks, total_likes, total_loves]
+labels = ['Clicks', 'Reactions', 'Post Clicks', 'Like Reactions', 'Love Reactions']
+parents = ['', '', 'Clicks', 'Reactions', 'Reactions']
+total = sum([total_clicks, total_reactions])  # For top-level engagement share
+
+# Format hover and text as percentages
+percent_format = [f"{(v / total) * 100:.1f}%" if i < 2 else "" for i, v in enumerate(values)]
+
+# Create figure
 fig_donut = go.Figure(go.Sunburst(
-    labels=['Clicks', 'Reactions', 'Post Clicks', 'Like Reactions', 'Love Reactions'],
-    parents=['', '', 'Clicks', 'Reactions', 'Reactions'],
-    values=[total_clicks, total_reactions, total_clicks, total_likes, total_loves],
+    labels=labels,
+    parents=parents,
+    values=values,
     branchvalues="total",
     marker=dict(
         colors=[
-            '#2C3E50',       # Inner Clicks
-            '#424242',       # Inner Reactions
-            '#5DADE2',       # Post Clicks (soft blue)
-            '#1877F2',       # Like Reactions (Facebook blue)
-            '#D81B60'        # Love Reactions (magenta)
+            '#2C3E50',       # Clicks
+            '#424242',       # Reactions
+            '#5DADE2',       # Post Clicks
+            '#1877F2',       # Like Reactions
+            '#D81B60'        # Love Reactions
         ],
         line=dict(color='rgba(255,255,255,0.1)', width=2)
     ),
-    hovertemplate='<b>%{label}</b><br>Value: %{value}<extra></extra>',
+    hovertemplate='<b>%{label}</b><br>Percent: %{percentRoot:.1%}<extra></extra>',
+    insidetexttemplate='%{label}<br>%{percentParent:.1%}',
     insidetextorientation='radial',
     maxdepth=2
 ))
 
 fig_donut.update_layout(
     margin=dict(t=20, l=10, r=10, b=20),
+    width=600,  # Reduce width here
+    height=500,
     paper_bgcolor='rgba(15,15,15,1)',
     plot_bgcolor='rgba(15,15,15,1)',
     font=dict(color='#CCCCCC', family='Segoe UI'),
     uniformtext=dict(minsize=12, mode='hide')
 )
 
-st.plotly_chart(fig_donut, use_container_width=True)
+st.plotly_chart(fig_donut, use_container_width=False)
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
