@@ -630,7 +630,7 @@ st.markdown(f"""
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 16px;
     padding: 25px;
-    margin-top: 30px;
+    margin-top: 10px;
     text-align: center;
     box-shadow: 0 6px 18px rgba(0,0,0,0.4);
 '>
