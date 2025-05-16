@@ -495,17 +495,14 @@ fig_nested.update_layout(
 )
 st.plotly_chart(fig_nested, use_container_width=False)
 
-import plotly.express as px
-import pandas as pd
-
-# === Step 1: Pull values from your dataframe
+# === Sample values from your data
 post_clicks = int(weekly_df['Post_Clicks'].sum())
 like_reactions = int(weekly_df['Total_Like_Reactions'].sum())
 love_reactions = int(weekly_df['Total_Love_Reactions'].sum())
 impressions = int(weekly_df['Total_Impressions'].sum())
 reach = int(weekly_df['Total_Reach'].sum())
 
-# === Step 2: Build hierarchy dataframe
+# === Hierarchical data structure
 df = pd.DataFrame({
     'Category': [
         'Clicks',
@@ -524,7 +521,7 @@ df = pd.DataFrame({
     ]
 })
 
-# === Step 3: Create sunburst chart
+# === Sunburst chart with donut styling
 fig = px.sunburst(
     df,
     path=['Category', 'Subcategory'],
@@ -537,19 +534,25 @@ fig = px.sunburst(
     }
 )
 
-# === Step 4: Style for dark mode
-fig.update_layout(
-    margin=dict(t=60, l=10, r=10, b=10),
-    paper_bgcolor='rgba(15,15,15,1)',
-    plot_bgcolor='rgba(15,15,15,1)',
-    font=dict(color='#EEEEEE', family='Segoe UI'),
+# === Format for dark donut style
+fig.update_traces(
+    hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percentParent}<extra></extra>',
+    insidetextorientation='radial',
+    textinfo='none',
+    root_color='rgba(0,0,0,0)'
 )
 
-# Optional: Make center empty (like donut)
-fig.update_traces(insidetextorientation='radial', textinfo='label+percent parent+value')
+fig.update_layout(
+    margin=dict(t=60, l=40, r=40, b=40),
+    paper_bgcolor='rgba(15,15,15,1)',
+    plot_bgcolor='rgba(15,15,15,1)',
+    font=dict(color='white', family='Segoe UI'),
+    uniformtext=dict(minsize=12, mode='hide')
+)
 
-# === Step 5: Show in Streamlit
+# Display in Streamlit
 st.plotly_chart(fig, use_container_width=True)
+
 
 
 # 🔗 Clickable Post Table – Preserves original look, polished
