@@ -465,6 +465,10 @@ st.markdown(f"""
     color: #ffffff;
     margin-bottom: 4px;
 }}
+.kpi-item:hover {{
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+}}
 .kpi-desc {{
     font-size: 12px;
     color: #999999;
@@ -641,7 +645,7 @@ st.markdown(f"""
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
     """
-    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
+    <div style='text-align: center; padding-top: 30px; padding-bottom: 10px;'>
         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
             🔗 Top Links Clicked Posts
         </span>
