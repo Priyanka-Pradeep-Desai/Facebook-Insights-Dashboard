@@ -409,61 +409,91 @@ fig_bar.update_traces(
 # Step 6: Show in Streamlit
 st.plotly_chart(fig_bar, use_container_width=True)
 
-st.markdown(
-    """
-    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
-        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-            🍩 Nested Donut Chart – Engagement Breakdown
-        </span>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
 #Chart 4: Donut Nested Pie chart
 st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-            🍩 Donut Chart – Engagement Breakdown
+            🍩 Nested Donut Chart – True Engagement Breakdown
         </span>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# Engagement components
+# Get individual components
 post_clicks = int(weekly_df['Post_Clicks'].sum())
 total_likes = int(weekly_df['Total_Like_Reactions'].sum())
 total_loves = int(weekly_df['Total_Love_Reactions'].sum())
+total_impressions = int(weekly_df['Total_Impressions'].sum())
+total_reach = int(weekly_df['Total_Reach'].sum())
 
-# Data for the chart
-labels = ['🖱 Post Clicks', '👍 Like Reactions', '❤️ Love Reactions']
-values = [post_clicks, total_likes, total_loves]
-colors = ['#5DADE2', '#1877F2', '#D81B60']
+# Group totals
+total_clicks = post_clicks
+total_reactions = total_likes + total_loves
+total_visits = total_impressions + total_reach
 
-# Create donut pie chart
-fig_pie = go.Figure(go.Pie(
-    labels=labels,
-    values=values,
-    hole=0.5,
-    marker=dict(colors=colors, line=dict(color='rgba(255,255,255,0.1)', width=2)),
-    hoverinfo='label+percent+value',
+# Outer ring – fine-grained breakdown
+outer_labels = [
+    '🖱 Post Clicks', '👍 Like Reactions', '❤️ Love Reactions',
+    '👁 Impressions', '📢 Reach'
+]
+outer_values = [
+    post_clicks, total_likes, total_loves,
+    total_impressions, total_reach
+]
+outer_colors = ['#5DADE2', '#1877F2', '#D81B60', '#FFB300', '#43A047']
+
+# Inner ring – grouped categories
+inner_labels = ['Clicks', 'Reactions', 'Impressions+Reach']
+inner_values = [total_clicks, total_reactions, total_visits]
+inner_colors = ['#2980B9', '#8E44AD', '#2ECC71']
+
+# Build figure
+fig_nested = go.Figure()
+
+# Outer donut (detailed components)
+fig_nested.add_trace(go.Pie(
+    labels=outer_labels,
+    values=outer_values,
+    hole=0.4,
+    direction='clockwise',
+    sort=False,
     textinfo='label+percent',
-    textfont=dict(color='#FFFFFF', size=14)
+    hoverinfo='label+percent+value',
+    marker=dict(colors=outer_colors),
+    domain={'x': [0, 1], 'y': [0, 1]},
+    showlegend=False
 ))
 
-fig_pie.update_layout(
-    width=600,
+# Inner donut (grouped)
+fig_nested.add_trace(go.Pie(
+    labels=inner_labels,
+    values=inner_values,
+    hole=0.7,
+    direction='clockwise',
+    sort=False,
+    textinfo='label+percent',
+    hoverinfo='label+percent+value',
+    marker=dict(colors=inner_colors),
+    domain={'x': [0, 1], 'y': [0, 1]},
+    showlegend=False
+))
+
+# Style layout
+fig_nested.update_layout(
+    width=650,
     height=500,
-    showlegend=False,
     margin=dict(t=40, l=40, r=40, b=40),
     paper_bgcolor='rgba(15,15,15,1)',
     plot_bgcolor='rgba(15,15,15,1)',
-    font=dict(color='#CCCCCC', family='Segoe UI')
+    font=dict(color='#CCCCCC', family='Segoe UI'),
+    annotations=[
+        dict(text='Engagement', x=0.5, y=0.5, font_size=16, showarrow=False, font_color='white')
+    ]
 )
 
-st.plotly_chart(fig_pie, use_container_width=False)
+st.plotly_chart(fig_nested, use_container_width=False)
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
