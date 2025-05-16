@@ -425,56 +425,45 @@ st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-            👍 Nested Donut Pie Chart: Engagement Breakdown
+            🍩 Donut Chart – Engagement Breakdown
         </span>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# 🔢 Sum the components of engagement
+# Engagement components
 post_clicks = int(weekly_df['Post_Clicks'].sum())
 total_likes = int(weekly_df['Total_Like_Reactions'].sum())
 total_loves = int(weekly_df['Total_Love_Reactions'].sum())
 
-engagement_total = post_clicks + total_likes + total_loves
+# Data for the chart
+labels = ['🖱 Post Clicks', '👍 Like Reactions', '❤️ Love Reactions']
+values = [post_clicks, total_likes, total_loves]
+colors = ['#5DADE2', '#1877F2', '#D81B60']
 
-# Labels and values
-labels = ['Engagement', 'Post Clicks', 'Like Reactions', 'Love Reactions']
-parents = ['', 'Engagement', 'Engagement', 'Engagement']
-values = [0, post_clicks, total_likes, total_loves]  # Engagement root is 0, children add up
-
-fig_donut = go.Figure(go.Sunburst(
+# Create donut pie chart
+fig_pie = go.Figure(go.Pie(
     labels=labels,
-    parents=parents,
     values=values,
-    branchvalues='total',
-    hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent of Engagement: %{percentParent:.1%}<extra></extra>',
-    insidetexttemplate='%{label}<br>%{percentParent:.1%}',
-    insidetextorientation='radial',
-    marker=dict(
-        colors=[
-            '#2C3E50',  # Engagement
-            '#5DADE2',  # Post Clicks
-            '#1877F2',  # Likes
-            '#D81B60'   # Loves
-        ],
-        line=dict(color='rgba(255,255,255,0.1)', width=2)
-    )
+    hole=0.5,
+    marker=dict(colors=colors, line=dict(color='rgba(255,255,255,0.1)', width=2)),
+    hoverinfo='label+percent+value',
+    textinfo='label+percent',
+    textfont=dict(color='#FFFFFF', size=14)
 ))
 
-fig_donut.update_layout(
-    margin=dict(t=20, l=10, r=10, b=20),
-    width=600,  # Adjusted for slimmer layout
+fig_pie.update_layout(
+    width=600,
     height=500,
+    showlegend=False,
+    margin=dict(t=40, l=40, r=40, b=40),
     paper_bgcolor='rgba(15,15,15,1)',
     plot_bgcolor='rgba(15,15,15,1)',
-    font=dict(color='#CCCCCC', family='Segoe UI'),
-    uniformtext=dict(minsize=12, mode='hide')
+    font=dict(color='#CCCCCC', family='Segoe UI')
 )
 
-st.plotly_chart(fig_donut, use_container_width=False)
-
+st.plotly_chart(fig_pie, use_container_width=False)
 
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
