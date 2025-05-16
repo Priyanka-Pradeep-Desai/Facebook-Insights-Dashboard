@@ -448,7 +448,7 @@ fig_nested = go.Figure()
 fig_nested.add_trace(go.Pie(
     labels=outer_labels,
     values=outer_values,
-    hole=0.4,
+    hole=0.3,
     marker=dict(colors=outer_colors, line=dict(color='#000', width=1)),
     hovertemplate='<b>%{label}</b><br>Value: %{value}<br>% of Group: %{percentParent:.1%}<extra></extra>',
     textinfo='percent',
@@ -461,7 +461,7 @@ fig_nested.add_trace(go.Pie(
 fig_nested.add_trace(go.Pie(
     labels=inner_labels,
     values=inner_values,
-    hole=0.9,
+    hole=1.2,
     marker=dict(colors=inner_colors, line=dict(color='#000', width=1)),
     hovertemplate='<b>%{label}</b><br>Total: %{value}<br>% of Engagement: %{percentParent:.1%}<extra></extra>',
     textinfo='label+percent',
@@ -473,7 +473,7 @@ fig_nested.add_trace(go.Pie(
 # === Layout ===
 fig_nested.update_layout(
     width=800,
-    height=500,
+    height=800,
     margin=dict(t=60, l=40, r=40, b=40),
     paper_bgcolor='rgba(15,15,15,1)',
     plot_bgcolor='rgba(15,15,15,1)',
