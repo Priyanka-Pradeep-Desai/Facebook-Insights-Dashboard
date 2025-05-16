@@ -472,7 +472,7 @@ fig_nested.add_trace(go.Pie(
 
 # === Layout ===
 fig_nested.update_layout(
-    width=600,
+    width=800,
     height=500,
     margin=dict(t=60, l=40, r=40, b=40),
     paper_bgcolor='rgba(15,15,15,1)',
