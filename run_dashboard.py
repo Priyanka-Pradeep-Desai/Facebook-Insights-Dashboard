@@ -434,7 +434,7 @@ st.markdown(f"""
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 24px;
+    gap: 20px;
     margin-top: 15px;
     margin-bottom: 30px;
 }}
@@ -442,33 +442,35 @@ st.markdown(f"""
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 16px;
-    width: 220px;
+    width: 250px;
     height: 130px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 14px;
+    padding: 12px;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.25);
 }}
 .kpi-title {{
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 600;
     color: #cccccc;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     text-align: center;
+    word-break: break-word;
 }}
 .kpi-value {{
-    font-size: 28px;
+    font-size: 26px;
     font-weight: 700;
     color: #ffffff;
     margin-bottom: 4px;
 }}
 .kpi-desc {{
-    font-size: 13px;
+    font-size: 12px;
     color: #999999;
     text-align: center;
-    max-width: 180px;
+    max-width: 220px;
+    word-break: break-word;
 }}
 </style>
 
@@ -490,6 +492,7 @@ st.markdown(f"""
     </div>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 #Chart 4: Donut Nested Pie chart
