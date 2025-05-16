@@ -409,17 +409,6 @@ fig_bar.update_traces(
 # Step 6: Show in Streamlit
 st.plotly_chart(fig_bar, use_container_width=True)
 
-st.markdown(
-    """
-    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
-        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-            📈 Conversion & Emotional KPIs
-        </span>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
 # -- Conversion Metrics Calculations --
 click_through_rate = (total_clicks / total_impressions) * 100 if total_impressions > 0 else 0
 conversion_intent_rate = (total_clicks / total_reach) * 100 if total_reach > 0 else 0
