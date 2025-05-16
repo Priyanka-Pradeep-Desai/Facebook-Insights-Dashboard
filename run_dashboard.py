@@ -421,7 +421,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# === Values ===
+# === Metric Aggregation ===
 post_clicks = int(weekly_df['Post_Clicks'].sum())
 total_likes = int(weekly_df['Total_Like_Reactions'].sum())
 total_loves = int(weekly_df['Total_Love_Reactions'].sum())
@@ -430,44 +430,46 @@ total_reach = int(weekly_df['Total_Reach'].sum())
 
 clicks_total = post_clicks
 reactions_total = total_likes + total_loves
-visits_total = total_impressions + total_reach
+views_total = total_impressions + total_reach
 
-# === Labels & Colors (better color palette for dark mode) ===
-outer_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions', 'Impressions', 'Reach']
-outer_values = [post_clicks, total_likes, total_loves, total_impressions, total_reach]
-outer_colors = ['#00A8E8', '#3D5AFE', '#F06292', '#FFD166', '#06D6A0']
+# === Define Labels and Values ===
+# Inner ring = detailed (fine-grained)
+inner_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions', 'Impressions', 'Reach']
+inner_values = [post_clicks, total_likes, total_loves, total_impressions, total_reach]
+inner_colors = ['#89CFF0', '#5E60CE', '#F15BB5', '#FFB627', '#80ED99']
 
-inner_labels = ['Clicks', 'Reactions', 'Reach + Impressions']
-inner_values = [clicks_total, reactions_total, visits_total]
-inner_colors = ['#264653', '#6A4C93', '#2A9D8F']  # Rich & clean for dark theme
+# Outer ring = grouped summary
+outer_labels = ['Clicks', 'Reactions', 'Views']
+outer_values = [clicks_total, reactions_total, views_total]
+outer_colors = ['#4361EE', '#9D4EDD', '#00C896']
 
-# === Chart ===
+# === Create Chart ===
 fig_nested = go.Figure()
 
-# Outer Ring
+# Inner Ring (Detailed breakdown)
 fig_nested.add_trace(go.Pie(
-    labels=outer_labels,
-    values=outer_values,
-    hole=0.5,
-    marker=dict(colors=outer_colors, line=dict(color='#000', width=1)),
+    labels=inner_labels,
+    values=inner_values,
+    hole=0.7,
+    marker=dict(colors=inner_colors, line=dict(color='#111', width=1)),
     hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}<extra></extra>',
     textinfo='none',
     domain={'x': [0, 1], 'y': [0, 1]},
     showlegend=True,
-    name='Detailed Breakdown'
+    name='Detailed'
 ))
 
-# Inner Ring
+# Outer Ring (Group summary)
 fig_nested.add_trace(go.Pie(
-    labels=inner_labels,
-    values=inner_values,
-    hole=0.75,
-    marker=dict(colors=inner_colors, line=dict(color='#000', width=1)),
+    labels=outer_labels,
+    values=outer_values,
+    hole=0.4,
+    marker=dict(colors=outer_colors, line=dict(color='#111', width=1)),
     hovertemplate='<b>%{label}</b><br>Total: %{value}<br>Percent: %{percent}<extra></extra>',
     textinfo='none',
     domain={'x': [0, 1], 'y': [0, 1]},
     showlegend=True,
-    name='Grouped Summary'
+    name='Groups'
 ))
 
 # Layout
@@ -488,7 +490,7 @@ fig_nested.update_layout(
         xanchor='right',
         x=1.1,
         bgcolor='rgba(0,0,0,0)',
-        font=dict(size=12)
+        font=dict(size=13)
     )
 )
 
