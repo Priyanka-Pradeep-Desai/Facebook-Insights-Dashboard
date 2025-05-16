@@ -257,6 +257,25 @@ fig_reactions.update_layout(
     margin=dict(l=60, r=40, t=80, b=60),
     bargap=0.35
 )
+
+with st.container():
+    st.markdown(
+        """
+        <div style='
+            background-color: rgba(25, 25, 25, 0.95);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            margin-bottom: 30px;
+        '>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.plotly_chart(fig_reactions, use_container_width=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
 st.plotly_chart(fig_reactions, use_container_width=True)
 
 # Chart 2: Total Impressions vs Reach (Daily Aggregated with Hover)
