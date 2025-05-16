@@ -246,8 +246,8 @@ fig_reactions.data[1].marker.color = custom_colors[1]  # Total_Loves → #FF758F
 
 # Chart layout styling
 fig_reactions.update_layout(
-    plot_bgcolor='rgba(20,20,20,1)',
-    paper_bgcolor='rgba(30,30,30,1)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    paper_bgcolor='rgba(0,0,0,0)',
     title_font=dict(size=22, color='#FFFFFF'),
     font=dict(family="Segoe UI, sans-serif", size=14, color='#CCCCCC'),
     legend_title_text='Reactions',
@@ -477,8 +477,8 @@ fig_nested.update_layout(
     width=750,
     height=600,
     margin=dict(t=60, l=40, r=40, b=60),
-    paper_bgcolor='rgba(15,15,15,1)',
-    plot_bgcolor='rgba(15,15,15,1)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    paper_bgcolor='rgba(0,0,0,0)',
     font=dict(color='#E0E0E0', family='Segoe UI'),
     annotations=[
         dict(text='Engagement', x=0.5, y=0.5, font_size=18, showarrow=False, font_color='white')
