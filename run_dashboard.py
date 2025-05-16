@@ -495,6 +495,15 @@ fig_nested.update_layout(
 )
 st.plotly_chart(fig_nested, use_container_width=False)
 
+weekday_order = (
+    weekly_df[['Day_Name', 'Created_Time']]
+    .drop_duplicates()
+    .sort_values('Created_Time')
+    .drop_duplicates(subset='Day_Name', keep='first')  # 👈 ensures uniqueness
+    ['Day_Name']
+    .tolist()
+)
+
 avg_engagement_by_day['Day_Name'] = pd.Categorical(
     avg_engagement_by_day['Day_Name'],
     categories=weekday_order,
