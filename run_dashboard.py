@@ -409,6 +409,15 @@ fig_bar.update_traces(
 # Step 6: Show in Streamlit
 st.plotly_chart(fig_bar, use_container_width=True)
 
+click_through_rate = (total_clicks / total_impressions) * 100 if total_impressions > 0 else 0
+st.markdown(f"""
+    <div class="kpi-item">
+        <div class="kpi-label">🚀 Click-Through Rate</div>
+        <div class="kpi-value">{click_through_rate:.2f}%</div>
+    </div>
+""", unsafe_allow_html=True)
+
+
 #Chart 4: Donut Nested Pie chart
 st.markdown(
     """
