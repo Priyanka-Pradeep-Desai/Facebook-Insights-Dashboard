@@ -420,68 +420,88 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# -- Conversion Metrics Calculations --
 click_through_rate = (total_clicks / total_impressions) * 100 if total_impressions > 0 else 0
-# Filter posts that had at least one like or love
-emotional_posts = weekly_df[(weekly_df['Total_Like_Reactions'] > 0) | (weekly_df['Total_Love_Reactions'] > 0)]
+conversion_intent_rate = (total_clicks / total_reach) * 100 if total_reach > 0 else 0
 
-# Total impressions from those posts
+emotional_posts = weekly_df[(weekly_df['Total_Like_Reactions'] > 0) | (weekly_df['Total_Love_Reactions'] > 0)]
 emotional_impressions = emotional_posts['Total_Impressions'].sum()
 emotional_post_count = len(emotional_posts)
-
 eem_score = (emotional_impressions / emotional_post_count) if emotional_post_count > 0 else 0
 
+# -- Title --
+st.markdown("""
+    <div style='text-align: center; padding-top: 30px; padding-bottom: 10px;'>
+        <span style='font-size: 22px; font-weight: 600; color: #FFFFFF;'>
+            📈 Conversion & Emotional KPIs
+        </span>
+    </div>
+""", unsafe_allow_html=True)
+
+# -- Custom KPI Card Style --
 st.markdown(f"""
 <style>
-.kpi-flex {{
+.kpi-row {{
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 24px;
-    margin-top: 20px;
+    margin-top: 15px;
+    margin-bottom: 30px;
 }}
-.kpi-item {{
-    background: rgba(255, 255, 255, 0.02);
+.kpi-box {{
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 16px;
-    width: 180px;
-    height: 120px;
+    width: 220px;
+    height: 130px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    text-align: center;
-    padding: 10px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    padding: 14px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.25);
 }}
-.kpi-item:hover {{
-    transform: scale(1.05);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-}}
-.kpi-label {{
-    font-size: 18px;
-    font-weight: 500;
+.kpi-title {{
+    font-size: 17px;
+    font-weight: 600;
     color: #cccccc;
+    margin-bottom: 5px;
+    text-align: center;
 }}
 .kpi-value {{
-    font-size: 30px;
+    font-size: 28px;
     font-weight: 700;
     color: #ffffff;
-    margin-top: 6px;
+    margin-bottom: 4px;
+}}
+.kpi-desc {{
+    font-size: 13px;
+    color: #999999;
+    text-align: center;
+    max-width: 180px;
 }}
 </style>
 
-<div class="kpi-flex">
-    <div class="kpi-item">
-        <div class="kpi-label">🚀 Click-Through Rate</div>
+<div class="kpi-row">
+    <div class="kpi-box">
+        <div class="kpi-title">🚀 Click-Through Rate</div>
         <div class="kpi-value">{click_through_rate:.2f}%</div>
+        <div class="kpi-desc">Percent of impressions that led to a click</div>
     </div>
-    <div class="kpi-item">
-        <div class="kpi-label">💖 Emotional Engagement Multiplier</div>
+    <div class="kpi-box">
+        <div class="kpi-title">💖 Emotional Engagement</div>
         <div class="kpi-value">{eem_score:,.2f}</div>
+        <div class="kpi-desc">Avg impressions on posts with likes/loves</div>
+    </div>
+    <div class="kpi-box">
+        <div class="kpi-title">📩 Conversion Intent Rate</div>
+        <div class="kpi-value">{conversion_intent_rate:.2f}%</div>
+        <div class="kpi-desc">Percent of reached users who clicked</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
+
 
 #Chart 4: Donut Nested Pie chart
 st.markdown(
