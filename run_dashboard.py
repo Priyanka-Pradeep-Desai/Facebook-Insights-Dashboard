@@ -437,43 +437,47 @@ outer_labels = ['Post Clicks', 'Like Reactions', 'Love Reactions', 'Impressions'
 outer_values = [post_clicks, total_likes, total_loves, total_impressions, total_reach]
 outer_colors = ['#4B8BBE', '#306998', '#E06C75', '#A78BFA', '#7C3AED']
 
-inner_labels = ['Clicks', 'Reactions', 'Reach+Impressions']
+inner_labels = ['Clicks', 'Reactions', 'Reach + Impressions']
 inner_values = [clicks_total, reactions_total, visits_total]
-inner_colors = ['#1B2838', '#2D2D44', '#364156']  # Muted dark tones
+inner_colors = ['#1B2838', '#2D2D44', '#364156']
 
 # === Chart ===
 fig_nested = go.Figure()
 
-# Outer Ring
+# Outer Ring (Detailed)
 fig_nested.add_trace(go.Pie(
     labels=outer_labels,
     values=outer_values,
-    hole=0.3,
-    marker=dict(colors=outer_colors, line=dict(color='#000', width=1)),
-    hovertemplate='<b>%{label}</b><br>Value: %{value}<br>% of Group: %{percentParent:.1%}<extra></extra>',
-    textinfo='percent',
-    textfont=dict(size=13),
+    hole=0.5,
+    marker=dict(colors=outer_colors, line=dict(color='#111', width=1)),
+    textinfo='label+percent',
+    hovertemplate='<b>%{label}</b><br>Value: %{value}<br>Percent: %{percent}<extra></extra>',
+    textfont=dict(size=14),
     domain={'x': [0, 1], 'y': [0, 1]},
-    showlegend=False
+    showlegend=False,
+    direction='clockwise',
+    sort=False
 ))
 
-# Inner Ring
+# Inner Ring (Groups)
 fig_nested.add_trace(go.Pie(
     labels=inner_labels,
     values=inner_values,
-    hole=0.8,
-    marker=dict(colors=inner_colors, line=dict(color='#000', width=1)),
-    hovertemplate='<b>%{label}</b><br>Total: %{value}<br>% of Engagement: %{percentParent:.1%}<extra></extra>',
+    hole=0.75,
+    marker=dict(colors=inner_colors, line=dict(color='#111', width=1)),
     textinfo='label+percent',
+    hovertemplate='<b>%{label}</b><br>Total: %{value}<br>Percent: %{percent}<extra></extra>',
     textfont=dict(size=15),
     domain={'x': [0, 1], 'y': [0, 1]},
-    showlegend=False
+    showlegend=False,
+    direction='clockwise',
+    sort=False
 ))
 
-# === Layout ===
+# Layout
 fig_nested.update_layout(
-    width=800,
-    height=800,
+    width=700,
+    height=600,
     margin=dict(t=60, l=40, r=40, b=40),
     paper_bgcolor='rgba(15,15,15,1)',
     plot_bgcolor='rgba(15,15,15,1)',
