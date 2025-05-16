@@ -187,9 +187,10 @@ summary_df['Day_Name'] = pd.to_datetime(summary_df['Created_Date']).dt.day_name(
 summary_df['Day_Of_Week'] = pd.to_datetime(summary_df['Created_Date']).dt.weekday  # 0=Monday, 6=Sunday
 
 # Chart 1: Daily Reaction Types Breakdown
+# Custom bar colors for Like/Love
 custom_colors = ['#1877F2', '#D81B60']
 
-# Add post content per day to summary_df
+# Add Created_Date column
 weekly_df['Created_Date'] = weekly_df['Created_Time'].dt.date
 
 # Posts that got likes
@@ -210,41 +211,32 @@ loves_by_day = (
     .rename(columns={'Content': 'Love_Posts'})
 )
 
+# Merge summaries
 summary_df['Created_Date'] = pd.to_datetime(summary_df['Created_Date']).dt.date
 summary_df = summary_df.merge(likes_by_day, on='Created_Date', how='left')
 summary_df = summary_df.merge(loves_by_day, on='Created_Date', how='left')
 
-st.markdown(
-    """
-    <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
-        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-            💬 Daily Reaction Type Breakdown
-        </span>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-# Create bar chart
+# Chart: Daily Reaction Bar Chart
 fig_reactions = px.bar(
     summary_df,
     x='Created_Date',
     y=['Total_Likes', 'Total_Loves'],
-    title=' ',
     labels={"value": "Count", "variable": "Reaction Type", "Created_Date": "Date"},
-    barmode='group')
-    
-# Add hover data
-fig_reactions.data[0].customdata = summary_df[['Like_Posts']].values  # For Total_Likes
+    barmode='group'
+)
+
+# Custom hover info
+fig_reactions.data[0].customdata = summary_df[['Like_Posts']].values
 fig_reactions.data[0].hovertemplate = '%{x}<br><b>Total_Likes:</b> %{y}<br><b>Liked Posts:</b><br>%{customdata[0]}<extra></extra>'
 
-fig_reactions.data[1].customdata = summary_df[['Love_Posts']].values  # For Total_Loves
+fig_reactions.data[1].customdata = summary_df[['Love_Posts']].values
 fig_reactions.data[1].hovertemplate = '%{x}<br><b>Total_Loves:</b> %{y}<br><b>Loved Posts:</b><br>%{customdata[0]}<extra></extra>'
 
-# Assign your custom colors to each trace
-fig_reactions.data[0].marker.color = custom_colors[0]  # Total_Likes → #C9184A
-fig_reactions.data[1].marker.color = custom_colors[1]  # Total_Loves → #FF758F
+# Assign colors
+fig_reactions.data[0].marker.color = custom_colors[0]
+fig_reactions.data[1].marker.color = custom_colors[1]
 
-# Chart layout styling
+# Layout styling
 fig_reactions.update_layout(
     plot_bgcolor='rgba(20,20,20,1)',
     paper_bgcolor='rgba(30,30,30,1)',
@@ -258,16 +250,22 @@ fig_reactions.update_layout(
     bargap=0.35
 )
 
+# === FINAL: WRAP TITLE + CHART TOGETHER IN STYLED CONTAINER ===
 with st.container():
     st.markdown(
         """
         <div style='
             background-color: rgba(25, 25, 25, 0.95);
-            padding: 25px;
+            padding: 25px 20px 15px 20px;
             border-radius: 16px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
             margin-bottom: 30px;
         '>
+            <div style='text-align: center; padding-bottom: 14px;'>
+                <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
+                    💬 Daily Reaction Type Breakdown
+                </span>
+            </div>
         """,
         unsafe_allow_html=True
     )
@@ -275,8 +273,6 @@ with st.container():
     st.plotly_chart(fig_reactions, use_container_width=True)
 
     st.markdown("</div>", unsafe_allow_html=True)
-
-st.plotly_chart(fig_reactions, use_container_width=True)
 
 # Chart 2: Total Impressions vs Reach (Daily Aggregated with Hover)
 # Step 1: Aggregate daily impressions, reach, and combine post content
