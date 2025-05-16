@@ -421,14 +421,6 @@ st.markdown(
 )
 
 click_through_rate = (total_clicks / total_impressions) * 100 if total_impressions > 0 else 0
-st.markdown(f"""
-    <div class="kpi-item">
-        <div class="kpi-label">🚀 Click-Through Rate</div>
-        <div class="kpi-value">{click_through_rate:.2f}%</div>
-    </div>
-""", unsafe_allow_html=True)
-
-
 # Filter posts that had at least one like or love
 emotional_posts = weekly_df[(weekly_df['Total_Like_Reactions'] > 0) | (weekly_df['Total_Love_Reactions'] > 0)]
 
@@ -437,12 +429,6 @@ emotional_impressions = emotional_posts['Total_Impressions'].sum()
 emotional_post_count = len(emotional_posts)
 
 eem_score = (emotional_impressions / emotional_post_count) if emotional_post_count > 0 else 0
-st.markdown(f"""
-    <div class="kpi-item">
-        <div class="kpi-label">💖 Emotional Engagement Multiplier</div>
-        <div class="kpi-value">{eem_score:,.2f}</div>
-    </div>
-""", unsafe_allow_html=True)
 
 st.markdown(f"""
 <style>
