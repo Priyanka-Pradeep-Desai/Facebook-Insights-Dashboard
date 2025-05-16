@@ -494,7 +494,6 @@ fig_nested.update_layout(
 
 st.plotly_chart(fig_nested, use_container_width=False)
 
-
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
     """
