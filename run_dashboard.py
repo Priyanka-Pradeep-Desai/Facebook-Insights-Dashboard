@@ -14,8 +14,6 @@ import json
 from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
-from pandas.io.parsers import ParserBase
-
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
