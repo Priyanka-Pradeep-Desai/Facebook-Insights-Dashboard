@@ -30,25 +30,12 @@ try:
     spreadsheet = client.open_by_url(SPREADSHEET_URL)
     worksheet = spreadsheet.worksheet(TAB_NAME)
 except Exception as e:
-    st.error(f"❌ Failed to open Google Sheet or tab.\n\nError:\n{e}")
+    st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
-
-# Step 3: Load data into a DataFrame
-# try:
-#     data = worksheet.get_all_records(head=2)
-#     df = pd.DataFrame(data)
-#     df.columns = df.columns.str.strip().str.replace(' ', '_')
-#     df['Created_Time'] = pd.to_datetime(df['Created_Time'])
-# except Exception as e:
-#     st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
-#     st.stop()
 
 # Step 3: Load data into a DataFrame while dropping duplicate headers entirely
 try:
-    # Step 3a: Read header row (row 2 in your sheet)
     raw_headers = worksheet.row_values(2)
-
-    # Step 3b: Remove duplicate column names, keeping only the first occurrence
     seen = set()
     filtered_headers = []
     for col in raw_headers:
@@ -56,18 +43,14 @@ try:
             seen.add(col)
             filtered_headers.append(col)
 
-    # Step 3c: Get all records using the cleaned headers
     data = worksheet.get_all_records(head=2, expected_headers=filtered_headers)
     df = pd.DataFrame(data)
 
-    # Step 3d: Clean column names for safe usage in code
     df.columns = pd.Index(filtered_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
-
-    # Step 3e: Parse dates
     df['Created_Time'] = pd.to_datetime(df['Created_Time'])
 
 except Exception as e:
-    st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
+    st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
 
 # Step 4: Filter last 10 calendar days (including today)
