@@ -42,34 +42,38 @@ except Exception as e:
 # except Exception as e:
 #     st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
 #     st.stop()
-# Step 3: Load data into a DataFrame with duplicate column fix
+# Step 3: Load data into a DataFrame with duplicate handling
 try:
-    # Get header from row 2
+    # Step 3a: Read headers from row 2
     raw_headers = worksheet.row_values(2)
 
-    # Deduplicate column names (e.g., 'Post Clicks', 'Post Clicks.1')
-    from pandas.io.parsers import ParserBase
-    deduped_headers = ParserBase({'names': raw_headers})._maybe_dedup_names(raw_headers)
+    # Step 3b: Deduplicate headers manually
+    seen = {}
+    deduped_headers = []
+    for col in raw_headers:
+        if col not in seen:
+            seen[col] = 0
+            deduped_headers.append(col)
+        else:
+            seen[col] += 1
+            deduped_headers.append(f"{col}_{seen[col]}")
 
-    # Load data with deduplicated headers
+    # Step 3c: Load data with deduplicated headers
     data = worksheet.get_all_records(head=2, expected_headers=deduped_headers)
     df = pd.DataFrame(data)
 
-    # Clean column names for compatibility (spaces, dots → underscores)
-    df.columns = (
-        pd.Index(deduped_headers)
-        .str.strip()
-        .str.replace(' ', '_')
-        .str.replace('.', '_')
-    )
+    # Step 3d: Clean column names
+    df.columns = pd.Index(deduped_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
 
-    # Convert Created_Time to datetime
+    # Step 3e: Drop duplicate columns (ending in _1, _2, etc.)
+    df = df.loc[:, ~df.columns.str.contains(r'_\d+$')]
+
+    # Step 3f: Convert Created_Time to datetime
     df['Created_Time'] = pd.to_datetime(df['Created_Time'])
 
 except Exception as e:
     st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
-
 
 # Step 4: Filter last 10 calendar days (including today)
 today = pd.Timestamp.now().normalize()
