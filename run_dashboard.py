@@ -195,22 +195,6 @@ except Exception as e:
     st.error(f"❌ SQL query failed.\n\nError:\n{e}")
     st.stop()
 
-try:
-    # Get header from row 2
-    header_row = worksheet.row_values(2)
-
-    # Get all records using fixed headers
-    data = worksheet.get_all_records(head=2, expected_headers=header_row)
-    df = pd.DataFrame(data)
-
-    # Clean column names
-    df.columns = df.columns.str.strip().str.replace(' ', '_').str.replace('.', '_')
-    df['Created_Time'] = pd.to_datetime(df['Created_Time'])
-
-except Exception as e:
-    st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
-    st.stop()
-
 # Add correct weekday name and index in pandas (timezone-safe and reliable)
 summary_df['Day_Name'] = pd.to_datetime(summary_df['Created_Date']).dt.day_name()
 summary_df['Day_Of_Week'] = pd.to_datetime(summary_df['Created_Date']).dt.weekday  # 0=Monday, 6=Sunday
