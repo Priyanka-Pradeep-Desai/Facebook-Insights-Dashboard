@@ -42,6 +42,7 @@ except Exception as e:
 # except Exception as e:
 #     st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
 #     st.stop()
+
 # Step 3: Load data into a DataFrame while dropping duplicate headers entirely
 try:
     # Step 3a: Read header row (row 2 in your sheet)
