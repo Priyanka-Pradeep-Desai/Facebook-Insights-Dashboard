@@ -14,6 +14,8 @@ import json
 from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
+from pandas.io.parsers import ParserBase
+
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -53,9 +55,11 @@ except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
 
+# Now proceed with the rest of your dashboard logic (which remains unchanged)
+
 # Step 4: Filter last 10 calendar days (including today)
 today = pd.Timestamp.now().normalize()
-start_date = today - pd.Timedelta(days=9)  # Includes today as the 10th day
+start_date = today - pd.Timedelta(days=9)
 end_date = today
 
 weekly_df = df[(df['Created_Time'] >= start_date) & (df['Created_Time'] <= end_date)]
@@ -63,8 +67,8 @@ weekly_df = df[(df['Created_Time'] >= start_date) & (df['Created_Time'] <= end_d
 if weekly_df.empty:
     st.warning("⚠️ No data available for the last 10 days.")
     st.stop()
-    
-# Step 5: Dark mode-friendly dashboard title
+
+# Step 5: Dashboard title
 week_range = f"{start_date.date()} to {end_date.date()}"
 
 st.markdown(f"""
