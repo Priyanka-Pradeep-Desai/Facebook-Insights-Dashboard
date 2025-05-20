@@ -191,7 +191,6 @@ custom_colors = ['#1877F2', '#D81B60']
 
 # Add post content per day to summary_df
 weekly_df['Created_Date'] = weekly_df['Created_Time'].dt.date
-
 # Posts that got likes
 likes_by_day = (
     weekly_df[weekly_df['Total_Like_Reactions'] > 0]
@@ -200,7 +199,6 @@ likes_by_day = (
     .reset_index()
     .rename(columns={'Content': 'Like_Posts'})
 )
-
 # Posts that got loves
 loves_by_day = (
     weekly_df[weekly_df['Total_Love_Reactions'] > 0]
@@ -209,7 +207,6 @@ loves_by_day = (
     .reset_index()
     .rename(columns={'Content': 'Love_Posts'})
 )
-
 summary_df['Created_Date'] = pd.to_datetime(summary_df['Created_Date']).dt.date
 summary_df = summary_df.merge(likes_by_day, on='Created_Date', how='left')
 summary_df = summary_df.merge(loves_by_day, on='Created_Date', how='left')
@@ -243,7 +240,6 @@ fig_reactions.data[1].hovertemplate = '%{x}<br><b>Total_Loves:</b> %{y}<br><b>Lo
 # Assign your custom colors to each trace
 fig_reactions.data[0].marker.color = custom_colors[0]  # Total_Likes → #C9184A
 fig_reactions.data[1].marker.color = custom_colors[1]  # Total_Loves → #FF758F
-
 # Chart layout styling
 fig_reactions.update_layout(
     plot_bgcolor='rgba(0,0,0,0)',
@@ -275,10 +271,8 @@ daily_summary = (
 
 # Step 2: Add readable date labels (e.g., "May 7, 2025") for x-axis
 daily_summary['Date_Label'] = pd.to_datetime(daily_summary['Date']).dt.strftime('%b %d, %Y')
-
 # Step 3: Create figure
 fig_impressions = go.Figure()
-
 # Step 4: Invisible trace to show post content in unified hover
 fig_impressions.add_trace(go.Scatter(
     x=daily_summary['Date_Label'],
@@ -291,7 +285,6 @@ fig_impressions.add_trace(go.Scatter(
     showlegend=False,
     hoverlabel=dict(namelength=0)
 ))
-
 # Step 5: Impressions line
 fig_impressions.add_trace(go.Scatter(
     x=daily_summary['Date_Label'],
@@ -302,7 +295,6 @@ fig_impressions.add_trace(go.Scatter(
     marker=dict(size=6),
     hovertemplate='<b>Impressions:</b> %{y}<extra></extra>'
 ))
-
 # Step 6: Reach line
 fig_impressions.add_trace(go.Scatter(
     x=daily_summary['Date_Label'],
