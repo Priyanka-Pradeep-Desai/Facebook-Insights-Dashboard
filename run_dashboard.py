@@ -34,14 +34,42 @@ except Exception as e:
     st.stop()
 
 # Step 3: Load data into a DataFrame
+# try:
+#     data = worksheet.get_all_records(head=2)
+#     df = pd.DataFrame(data)
+#     df.columns = df.columns.str.strip().str.replace(' ', '_')
+#     df['Created_Time'] = pd.to_datetime(df['Created_Time'])
+# except Exception as e:
+#     st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
+#     st.stop()
+# Step 3: Load data into a DataFrame with duplicate column fix
 try:
-    data = worksheet.get_all_records(head=2)
+    # Get header from row 2
+    raw_headers = worksheet.row_values(2)
+
+    # Deduplicate column names (e.g., 'Post Clicks', 'Post Clicks.1')
+    from pandas.io.parsers import ParserBase
+    deduped_headers = ParserBase({'names': raw_headers})._maybe_dedup_names(raw_headers)
+
+    # Load data with deduplicated headers
+    data = worksheet.get_all_records(head=2, expected_headers=deduped_headers)
     df = pd.DataFrame(data)
-    df.columns = df.columns.str.strip().str.replace(' ', '_')
+
+    # Clean column names for compatibility (spaces, dots → underscores)
+    df.columns = (
+        pd.Index(deduped_headers)
+        .str.strip()
+        .str.replace(' ', '_')
+        .str.replace('.', '_')
+    )
+
+    # Convert Created_Time to datetime
     df['Created_Time'] = pd.to_datetime(df['Created_Time'])
+
 except Exception as e:
     st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
+
 
 # Step 4: Filter last 10 calendar days (including today)
 today = pd.Timestamp.now().normalize()
