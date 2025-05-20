@@ -199,10 +199,6 @@ try:
     # Get header from row 2
     header_row = worksheet.row_values(2)
 
-    # Deduplicate column names safely
-    from pandas.io.parsers import ParserBase
-    header_row = ParserBase({'names': header_row})._maybe_dedup_names(header_row)
-
     # Get all records using fixed headers
     data = worksheet.get_all_records(head=2, expected_headers=header_row)
     df = pd.DataFrame(data)
