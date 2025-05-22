@@ -721,7 +721,7 @@ if should_send_email_gsheet():
         message["From"] = sender_email
         message["To"] = ", ".join(receiver_emails)
 
-        DASHBOARD_URL = "https://yourdashboardlink.com"
+        DASHBOARD_URL = "https://facebook-insights-dashboard-elxpadltekfwuqpbur66q2.streamlit.app/"
         text = f"Hello,\n\nYour Facebook Insights Dashboard is ready.\n\nView Dashboard: {DASHBOARD_URL}\n\nRegards,\nInsights Bot"
         html = f"""
         <html>
