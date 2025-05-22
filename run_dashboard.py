@@ -14,6 +14,8 @@ import json
 from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
+from email.mime.application import MIMEApplication
+import pdfkit  # or use weasyprint.html() if preferred
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -669,13 +671,13 @@ link_table['Permanent_Link'] = link_table['Permanent_Link'].apply(
 # Step 3: Render the table
 st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
 
-# Use Google Sheet instead of local file for timestamp tracking
-TIMESTAMP_SHEET_URL = "https://docs.google.com/spreadsheets/d/1PWMPIPELb_wOKZ0Oqmh0YppQPt_pvUjJaXQn9tp4G-o"
-TIMESTAMP_TAB_NAME = "Sheet1"  # or rename if needed
-timestamp_sheet = client.open_by_url(TIMESTAMP_SHEET_URL).worksheet(TIMESTAMP_TAB_NAME)
-
+# Your Google Sheet timestamp logic
 def should_send_email_gsheet(days_interval=4):
     try:
+        TIMESTAMP_SHEET_URL = "https://docs.google.com/spreadsheets/d/1PWMPIPELb_wOKZ0Oqmh0YppQPt_pvUjJaXQn9tp4G-o"
+        TIMESTAMP_TAB_NAME = "Sheet1"
+        timestamp_sheet = client.open_by_url(TIMESTAMP_SHEET_URL).worksheet(TIMESTAMP_TAB_NAME)
+
         last_sent_str = timestamp_sheet.acell('A1').value
         now = pd.Timestamp.now()
 
@@ -683,29 +685,45 @@ def should_send_email_gsheet(days_interval=4):
             last_sent = pd.to_datetime(last_sent_str)
             diff_days = (now - last_sent).days
             if diff_days < days_interval:
-                st.info(f"⏱️ Last email was sent {diff_days} days ago. Email will be sent after {days_interval - diff_days} more day(s).")
+                st.info(f"⏱️ Last email was sent {diff_days} days ago.")
                 return False
 
-        # ✅ More than 4 days passed or cell was empty
         timestamp_sheet.update_acell('A1', now.isoformat())
         return True
 
     except Exception as e:
         st.warning(f"⚠️ Error accessing timestamp sheet: {e}")
         return False
-    
-# Step 8: Email Automation (every 3 days using session state)
+
+
+# 📄 Generate and save Streamlit page as PDF (simplified)
+def export_page_to_pdf(html_content, output_path='dashboard.pdf'):
+    try:
+        # Save HTML to a temp file
+        with open("temp_dashboard.html", "w", encoding="utf-8") as f:
+            f.write(html_content)
+
+        pdfkit.from_file("temp_dashboard.html", output_path)
+        os.remove("temp_dashboard.html")
+        return output_path
+    except Exception as e:
+        st.error(f"Error generating PDF: {e}")
+        return None
+
+
+# 🔁 Email Automation
 if should_send_email_gsheet():
     try:
         sender_email = st.secrets["GMAIL_USER"]
         password = st.secrets["GMAIL_PASS"]
-        receiver_emails = ["priyankadesai1999@gmail.com", "tom.basey@gmail.com"]
+        receiver_emails = ["priyankadesai1999@gmail.com", "pinky2512desai@gmail.com"]
 
         message = MIMEMultipart("alternative")
         message["Subject"] = "📊 Facebook Dashboard Link"
         message["From"] = sender_email
         message["To"] = ", ".join(receiver_emails)
 
+        DASHBOARD_URL = "https://yourdashboardlink.com"
         text = f"Hello,\n\nYour Facebook Insights Dashboard is ready.\n\nView Dashboard: {DASHBOARD_URL}\n\nRegards,\nInsights Bot"
         html = f"""
         <html>
@@ -725,16 +743,25 @@ if should_send_email_gsheet():
         message.attach(part1)
         message.attach(part2)
 
+        # 🌐 Generate PDF from HTML
+        pdf_path = export_page_to_pdf(html)
+        if pdf_path:
+            with open(pdf_path, "rb") as f:
+                attach = MIMEApplication(f.read(), _subtype="pdf")
+                attach.add_header('Content-Disposition', 'attachment', filename="Facebook_Insights_Dashboard.pdf")
+                message.attach(attach)
+
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_emails, message.as_string())
 
-        st.success("📧 Email sent successfully!")
+        st.success("📧 Email with PDF sent successfully!")
 
     except Exception as e:
         st.error(f"❌ Failed to send email.\n\nError:\n{e}")
 else:
     st.info("✅ No email sent today. It's not time yet.")
+
 
 
 
