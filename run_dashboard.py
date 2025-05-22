@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
 from email.mime.application import MIMEApplication
-import pdfkit  # or use weasyprint.html() if preferred
+from weasyprint import HTML
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -696,20 +696,18 @@ def should_send_email_gsheet(days_interval=4):
         return False
 
 
-# 📄 Generate and save Streamlit page as PDF (simplified)
+# 🧾 Generate and save Streamlit page as PDF using WeasyPrint
 def export_page_to_pdf(html_content, output_path='dashboard.pdf'):
     try:
-        # Save HTML to a temp file
         with open("temp_dashboard.html", "w", encoding="utf-8") as f:
             f.write(html_content)
 
-        pdfkit.from_file("temp_dashboard.html", output_path)
+        HTML("temp_dashboard.html").write_pdf(output_path)
         os.remove("temp_dashboard.html")
         return output_path
     except Exception as e:
-        st.error(f"Error generating PDF: {e}")
+        st.error(f"❌ Error generating PDF: {e}")
         return None
-
 
 # 🔁 Email Automation
 if should_send_email_gsheet():
