@@ -694,12 +694,12 @@ def should_send_email_gsheet(days_interval=4):
         return False
 
 # === PDF Generation via PDFCrowd ===
-def export_dashboard_url_to_pdf(dashboard_url, output_path='/tmp/dashboard.pdf'):
+def export_dashboard_url_to_pdf(DASHBOARD_URL, output_path='/tmp/dashboard.pdf'):
     try:
         api_url = "https://api.html2pdf.app/v1/generate"
         params = {
-            "url": dashboard_url,
-            "apiKey": "free"  # public "free" tier
+            "url": DASHBOARD_URL,
+            "apiKey": "v3ILYotJnWtqE7YbDDZiMfye9gmZczeVEXbZ92dzxQungwvONvqyA49xQibsyTWO"  # public "free" tier
         }
         response = requests.get(api_url, params=params)
 
