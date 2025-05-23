@@ -696,13 +696,11 @@ chart2_path = "/tmp/impressions_chart.png"
 chart3_path = "/tmp/top_engagement_chart.png"
 chart4_path = "/tmp/donut_chart.png"
 
-fig_bar.write_image("/tmp/top_engagement_chart.png", format='png')
-
-# # Save charts
-# fig_reactions.write_image(chart1_path, width=800, height=500, scale=2)
-# fig_impressions.write_image(chart2_path, width=800, height=500, scale=2)
-# fig_bar.write_image(chart3_path, width=800, height=600, scale=2)
-# fig_nested.write_image(chart4_path, width=800, height=500, scale=2)
+# Save charts
+fig_reactions.write_image(chart1_path, width=800, height=500, scale=2)
+fig_impressions.write_image(chart2_path, width=800, height=500, scale=2)
+fig_bar.write_image(chart3_path, width=800, height=600, scale=2)
+fig_nested.write_image(chart4_path, width=800, height=500, scale=2)
 
 # === Timestamp Logic ===
 def should_send_email_gsheet(days_interval=4):
