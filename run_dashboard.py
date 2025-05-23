@@ -54,8 +54,6 @@ except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
 
-# Now proceed with the rest of your dashboard logic (which remains unchanged)
-
 # Step 4: Filter last 10 calendar days (including today)
 today = pd.Timestamp.now().normalize()
 start_date = today - pd.Timedelta(days=9)
