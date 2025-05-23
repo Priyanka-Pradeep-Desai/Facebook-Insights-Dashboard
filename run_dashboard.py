@@ -669,17 +669,47 @@ st.markdown(f"""
 # # Step 3: Render the table
 # st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
 
-# Create temp image paths
-chart1_path = "/tmp/reactions_chart.png"
-chart2_path = "/tmp/impressions_chart.png"
-chart3_path = "/tmp/top_engagement_chart.png"
-chart4_path = "/tmp/donut_chart.png"
+# # Create temp image paths
+# chart1_path = "/tmp/reactions_chart.png"
+# chart2_path = "/tmp/impressions_chart.png"
+# chart3_path = "/tmp/top_engagement_chart.png"
+# chart4_path = "/tmp/donut_chart.png"
 
-# Save charts
-fig_reactions.write_image(chart1_path, width=800, height=500, scale=2)
-fig_impressions.write_image(chart2_path, width=800, height=500, scale=2)
-fig_bar.write_image(chart3_path, width=800, height=600, scale=2)
-fig_nested.write_image(chart4_path, width=800, height=500, scale=2)
+# # Save charts
+# fig_reactions.write_image(chart1_path, width=800, height=500, scale=2)
+# fig_impressions.write_image(chart2_path, width=800, height=500, scale=2)
+# fig_bar.write_image(chart3_path, width=800, height=600, scale=2)
+# fig_nested.write_image(chart4_path, width=800, height=500, scale=2)
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+import os
+
+def take_dashboard_screenshot(dashboard_url, output_path="/tmp/facebook_dashboard_snapshot.png"):
+    try:
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--window-size=1280,3000")  # adjust height as needed
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+
+        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+        driver.get(dashboard_url)
+
+        # Wait for content to load (you can adjust this depending on load speed)
+        time.sleep(12)
+
+        driver.save_screenshot(output_path)
+        driver.quit()
+
+        print(f"✅ Screenshot saved to {output_path}")
+        return output_path
+    except Exception as e:
+        print(f"❌ Failed to take screenshot: {e}")
+        return None
 
 # === Timestamp Logic ===
 def should_send_email_gsheet(days_interval=4):
@@ -731,12 +761,20 @@ if should_send_email_gsheet():
         """
         message.attach(MIMEText(body, "plain"))
 
-        # Attach charts
-        for path in [chart1_path, chart2_path, chart3_path, chart4_path]:
-            with open(path, "rb") as f:
-                part = MIMEApplication(f.read(), Name=os.path.basename(path))
-                part['Content-Disposition'] = f'attachment; filename="{os.path.basename(path)}"'
-                message.attach(part)
+        screenshot_path = take_dashboard_screenshot(DASHBOARD_URL)
+        
+        if screenshot_path and os.path.exists(screenshot_path):
+            with open(screenshot_path, "rb") as f:
+                img_part = MIMEApplication(f.read(), Name="Facebook_Insights_Snapshot.png")
+                img_part['Content-Disposition'] = 'attachment; filename="Facebook_Insights_Snapshot.png"'
+                message.attach(img_part)
+
+        # # Attach charts
+        # for path in [chart1_path, chart2_path, chart3_path, chart4_path]:
+        #     with open(path, "rb") as f:
+        #         part = MIMEApplication(f.read(), Name=os.path.basename(path))
+        #         part['Content-Disposition'] = f'attachment; filename="{os.path.basename(path)}"'
+        #         message.attach(part)
 
         # Send email
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
