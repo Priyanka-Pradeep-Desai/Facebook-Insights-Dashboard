@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
 from email.mime.application import MIMEApplication
-import pdfcrowd
+import requests
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -703,12 +703,19 @@ def should_send_email_gsheet(days_interval=4):
 # === PDF Generation via PDFCrowd ===
 def export_dashboard_url_to_pdf(dashboard_url, output_path='dashboard.pdf'):
     try:
-        client = pdfcrowd.HtmlToPdfClient(st.secrets["PDFCROWD_USER"], st.secrets["PDFCROWD_API_KEY"])
-        with open(output_path, 'wb') as f:
-            client.convertUrlToFile(dashboard_url, f)
-        return output_path
-    except pdfcrowd.Error as e:
-        st.error(f"❌ PDFCrowd Error: {e}")
+        api_url = f"https://url2pdf.io/api/generate?url={dashboard_url}"
+        response = requests.get(api_url)
+
+        if response.status_code == 200:
+            with open(output_path, 'wb') as f:
+                f.write(response.content)
+            return output_path
+        else:
+            st.error(f"❌ Failed to generate PDF. Status: {response.status_code}")
+            return None
+
+    except Exception as e:
+        st.error(f"❌ PDF Generation Error: {e}")
         return None
 
 # === Email Automation ===
