@@ -17,13 +17,6 @@ from plotly.subplots import make_subplots
 from email.mime.application import MIMEApplication
 from plotly.io import write_image
 
-# Save charts
-fig_reactions.write_image(chart1_path, width=800, height=500, scale=2)
-fig_impressions.write_image(chart2_path, width=800, height=500, scale=2)
-fig_bar.write_image(chart3_path, width=800, height=600, scale=2)
-fig_nested.write_image(chart4_path, width=800, height=500, scale=2)
-
-
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds_dict = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
@@ -687,6 +680,7 @@ fig_reactions.write_image(chart1_path, width=800, height=500, scale=2)
 fig_impressions.write_image(chart2_path, width=800, height=500, scale=2)
 fig_bar.write_image(chart3_path, width=800, height=600, scale=2)
 fig_nested.write_image(chart4_path, width=800, height=500, scale=2)
+
 # === Timestamp Logic ===
 def should_send_email_gsheet(days_interval=4):
     try:
