@@ -694,12 +694,12 @@ def should_send_email_gsheet(days_interval=4):
         return False
 
 # === PDF Generation via PDFCrowd ===
-def export_dashboard_url_to_pdf(DASHBOARD_URL, output_path='/tmp/dashboard.pdf'):
+def export_dashboard_url_to_pdf(dashboard_url, output_path='/tmp/dashboard.pdf'):
     try:
-        api_key = st.secrets["HTML2PDF_API_KEY"]
         api_url = "https://api.html2pdf.app/v1/generate"
+        api_key = st.secrets["HTML2PDF_API_KEY"]
         params = {
-            "url": DASHBOARD_URL,
+            "url": dashboard_url,
             "apiKey": api_key
         }
         response = requests.get(api_url, params=params)
@@ -709,12 +709,13 @@ def export_dashboard_url_to_pdf(DASHBOARD_URL, output_path='/tmp/dashboard.pdf')
                 f.write(response.content)
             return output_path
         else:
-            st.error(f"❌ Failed to generate PDF. Status: {response.status_code}")
+            st.error(f"❌ Failed to generate PDF. Status: {response.status_code} - {response.text}")
             return None
 
     except Exception as e:
         st.error(f"❌ PDF Generation Error: {e}")
         return None
+
 
 # === Email Automation ===
 if should_send_email_gsheet():
