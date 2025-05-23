@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
 from email.mime.application import MIMEApplication
-from weasyprint import HTML
+import pdfcrowd
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -671,7 +671,7 @@ st.markdown(f"""
 # # Step 3: Render the table
 # st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
 
-# Your Google Sheet timestamp logic
+# === Timestamp Logic ===
 def should_send_email_gsheet(days_interval=4):
     try:
         TIMESTAMP_SHEET_URL = "https://docs.google.com/spreadsheets/d/1PWMPIPELb_wOKZ0Oqmh0YppQPt_pvUjJaXQn9tp4G-o"
@@ -695,21 +695,18 @@ def should_send_email_gsheet(days_interval=4):
         st.warning(f"⚠️ Error accessing timestamp sheet: {e}")
         return False
 
-
-# 🧾 Generate and save Streamlit page as PDF using WeasyPrint
-def export_page_to_pdf(html_content, output_path='dashboard.pdf'):
+# === PDF Generation via PDFCrowd ===
+def export_dashboard_url_to_pdf(dashboard_url, output_path='dashboard.pdf'):
     try:
-        with open("temp_dashboard.html", "w", encoding="utf-8") as f:
-            f.write(html_content)
-
-        HTML("temp_dashboard.html").write_pdf(output_path)
-        os.remove("temp_dashboard.html")
+        client = pdfcrowd.HtmlToPdfClient(st.secrets["PDFCROWD_USER"], st.secrets["PDFCROWD_API_KEY"])
+        with open(output_path, 'wb') as f:
+            client.convertUrlToFile(dashboard_url, f)
         return output_path
-    except Exception as e:
-        st.error(f"❌ Error generating PDF: {e}")
+    except pdfcrowd.Error as e:
+        st.error(f"❌ PDFCrowd Error: {e}")
         return None
 
-# 🔁 Email Automation
+# === Email Automation ===
 if should_send_email_gsheet():
     try:
         sender_email = st.secrets["GMAIL_USER"]
@@ -741,8 +738,8 @@ if should_send_email_gsheet():
         message.attach(part1)
         message.attach(part2)
 
-        # 🌐 Generate PDF from HTML
-        pdf_path = export_page_to_pdf(html)
+        # 🌐 Convert dashboard URL to PDF and attach
+        pdf_path = export_dashboard_url_to_pdf(DASHBOARD_URL)
         if pdf_path:
             with open(pdf_path, "rb") as f:
                 attach = MIMEApplication(f.read(), _subtype="pdf")
@@ -759,7 +756,6 @@ if should_send_email_gsheet():
         st.error(f"❌ Failed to send email.\n\nError:\n{e}")
 else:
     st.info("✅ No email sent today. It's not time yet.")
-
 
 
 
