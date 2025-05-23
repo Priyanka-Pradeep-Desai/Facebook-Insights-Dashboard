@@ -693,29 +693,38 @@ def should_send_email_gsheet(days_interval=4):
         st.warning(f"⚠️ Error accessing timestamp sheet: {e}")
         return False
 
-# === PDF Generation via PDFCrowd ===
-def export_dashboard_url_to_pdf(dashboard_url, output_path='/tmp/dashboard.pdf'):
+# === html file generated===
+def export_dashboard_html_snapshot(summary_df, top_engaged_df, output_path="/tmp/dashboard_snapshot.html"):
     try:
-        api_url = "https://api.html2pdf.app/v1/generate"
-        api_key = st.secrets["HTML2PDF_API_KEY"]
-        params = {
-            "url": dashboard_url.strip(),
-            "apiKey": api_key
-        }
-        st.info(f"📤 Sending request to PDF API with URL: {params['url']}")
-        response = requests.get(api_url, params=params)
+        html_content = f"""
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; padding: 20px; }}
+                h2 {{ color: #2c3e50; }}
+                table {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; }}
+                th, td {{ border: 1px solid #ccc; padding: 8px; text-align: left; }}
+                th {{ background-color: #f0f0f0; }}
+            </style>
+        </head>
+        <body>
+            <h2>📊 Facebook Insights Dashboard Snapshot</h2>
+            <h3>✅ Weekly Summary</h3>
+            {summary_df.to_html(index=False, escape=False)}
 
-        if response.status_code == 200:
-            with open(output_path, 'wb') as f:
-                f.write(response.content)
-            st.success("✅ PDF file generated successfully.")
-            return output_path
-        else:
-            st.error(f"❌ PDF API Error: {response.status_code} - {response.text}")
-            return None
+            <h3>🏆 Top 10 Posts by Engagement</h3>
+            {top_engaged_df[['Content', 'Engagement_Score']].to_html(index=False, escape=False)}
 
+            <p><i>This snapshot was generated and sent automatically.</i></p>
+        </body>
+        </html>
+        """
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(html_content)
+        return output_path
     except Exception as e:
-        st.error(f"❌ PDF Generation Exception: {e}")
+        st.warning(f"⚠️ Failed to generate HTML snapshot: {e}")
         return None
 
 # === Email Automation ===
@@ -749,27 +758,26 @@ if should_send_email_gsheet():
         message.attach(part1)
         message.attach(part2)
 
-        # 🌐 Convert dashboard URL to PDF and attach
-        st.write("🔍 Testing PDF generation:")
-        pdf = export_dashboard_url_to_pdf(DASHBOARD_URL)
-        if pdf:
-            st.download_button("⬇️ Download PDF", data=open(pdf, "rb"), file_name="dashboard.pdf")
+        # 🌐 Create HTML snapshot and attach
+        html_snapshot_path = export_dashboard_html_snapshot(summary_df, top_engaged_posts)
         
-        if pdf_path is not None and os.path.exists(pdf_path):
-            with open(pdf_path, "rb") as f:
-                attach = MIMEApplication(f.read(), _subtype="pdf")
-                attach.add_header('Content-Disposition', 'attachment', filename="Facebook_Insights_Dashboard.pdf")
-                message.attach(attach)
-            st.info("✅ PDF attached successfully.")
+        if html_snapshot_path and os.path.exists(html_snapshot_path):
+            try:
+                with open(html_snapshot_path, "rb") as f:
+                    html_attach = MIMEApplication(f.read(), _subtype="html")
+                    html_attach.add_header('Content-Disposition', 'attachment', filename="Facebook_Insights_Dashboard.html")
+                    message.attach(html_attach)
+                st.info("✅ HTML snapshot attached successfully.")
+            except Exception as e:
+                st.warning(f"⚠️ Failed to attach HTML snapshot.\n\nError:\n{e}")
         else:
-            st.warning("⚠️ PDF file not found or failed to generate. Skipping attachment.")
-
-
+            st.warning("⚠️ HTML snapshot not found or failed to generate. Skipping attachment.")
+        
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_emails, message.as_string())
 
-        st.success("📧 Email with PDF sent successfully!")
+        st.success("📧 Email sent successfully!")
 
     except Exception as e:
         st.error(f"❌ Failed to send email.\n\nError:\n{e}")
