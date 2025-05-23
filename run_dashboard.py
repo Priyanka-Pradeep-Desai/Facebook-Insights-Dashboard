@@ -676,12 +676,27 @@ st.markdown(f"""
 
 # # Step 3: Render the table
 # st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
+def solid_background(fig, bg_color="black"):
+    fig.update_layout(
+        plot_bgcolor=bg_color,
+        paper_bgcolor=bg_color,
+        font=dict(color='white'),
+        legend=dict(font=dict(color='white'))
+    )
+    return fig
 
-# # Create temp image paths
-# chart1_path = "/tmp/reactions_chart.png"
-# chart2_path = "/tmp/impressions_chart.png"
-# chart3_path = "/tmp/top_engagement_chart.png"
-# chart4_path = "/tmp/donut_chart.png"
+fig_bar = solid_background(fig_bar)
+fig_nested = solid_background(fig_nested)
+fig_reactions = solid_background(fig_reactions)
+fig_impressions = solid_background(fig_impressions)
+
+# Create temp image paths
+chart1_path = "/tmp/reactions_chart.png"
+chart2_path = "/tmp/impressions_chart.png"
+chart3_path = "/tmp/top_engagement_chart.png"
+chart4_path = "/tmp/donut_chart.png"
+
+fig_bar.write_image("/tmp/top_engagement_chart.png", format='png')
 
 # # Save charts
 # fig_reactions.write_image(chart1_path, width=800, height=500, scale=2)
@@ -689,48 +704,7 @@ st.markdown(f"""
 # fig_bar.write_image(chart3_path, width=800, height=600, scale=2)
 # fig_nested.write_image(chart4_path, width=800, height=500, scale=2)
 
-
-        # # Attach charts
-        # for path in [chart1_path, chart2_path, chart3_path, chart4_path]:
-        #     with open(path, "rb") as f:
-        #         part = MIMEApplication(f.read(), Name=os.path.basename(path))
-        #         part['Content-Disposition'] = f'attachment; filename="{os.path.basename(path)}"'
-        #         message.attach(part)
-
-
-SCREENSHOT_FILE = "facebook_dashboard_snapshot.png"
-
-# === Google Sheets Authentication ===
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds_dict = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-client = gspread.authorize(creds)
-
-# === 1. Screenshot Function ===
-def take_dashboard_screenshot(dashboard_url, output_path=SCREENSHOT_FILE):
-    try:
-        options = Options()
-        options.add_argument("--headless")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--window-size=1280,3000")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
-
-        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-        driver.get(dashboard_url)
-
-        time.sleep(12)  # Wait for dashboard to fully load
-
-        driver.save_screenshot(output_path)
-        driver.quit()
-
-        st.success(f"✅ Screenshot saved to {output_path}")
-        return output_path
-    except Exception as e:
-        st.error(f"❌ Failed to take screenshot: {e}")
-        return None
-
-# === 2. Timestamp Sheet Control ===
+# === Timestamp Logic ===
 def should_send_email_gsheet(days_interval=4):
     try:
         TIMESTAMP_SHEET_URL = "https://docs.google.com/spreadsheets/d/1PWMPIPELb_wOKZ0Oqmh0YppQPt_pvUjJaXQn9tp4G-o"
@@ -754,7 +728,7 @@ def should_send_email_gsheet(days_interval=4):
         st.warning(f"⚠️ Error accessing timestamp sheet: {e}")
         return False
 
-# === 3. Email Automation ===
+# === Email Automation ===
 if should_send_email_gsheet():
     try:
         sender_email = st.secrets["GMAIL_USER"]
@@ -762,7 +736,7 @@ if should_send_email_gsheet():
         receiver_emails = ["priyankadesai1999@gmail.com", "pinky2512desai@gmail.com"]
 
         message = MIMEMultipart()
-        message["Subject"] = "📊 Facebook Dashboard Link & Snapshot"
+        message["Subject"] = "📊 Facebook Dashboard Link & Visuals"
         message["From"] = sender_email
         message["To"] = ", ".join(receiver_emails)
 
@@ -771,7 +745,7 @@ if should_send_email_gsheet():
 
         Your Facebook Insights Dashboard is ready.
 
-        📎 Attached is a snapshot of the dashboard with KPIs and charts.
+        📎 Attached are the visual KPI snapshots and charts.
 
         🔗 View Dashboard: {DASHBOARD_URL}
 
@@ -780,24 +754,19 @@ if should_send_email_gsheet():
         """
         message.attach(MIMEText(body, "plain"))
 
-        # Take screenshot and attach if successful
-        screenshot_path = take_dashboard_screenshot(DASHBOARD_URL)
-
-        if screenshot_path and os.path.exists(screenshot_path):
-            with open(screenshot_path, "rb") as f:
-                img_part = MIMEApplication(f.read(), Name=os.path.basename(screenshot_path))
-                img_part['Content-Disposition'] = f'attachment; filename="{os.path.basename(screenshot_path)}"'
-                message.attach(img_part)
-            st.success("📎 Screenshot attached to email successfully.")
-        else:
-            st.warning("⚠️ Screenshot not found or failed to generate. Skipping attachment.")
+        # Attach charts
+        for path in [chart1_path, chart2_path, chart3_path, chart4_path]:
+            with open(path, "rb") as f:
+                part = MIMEApplication(f.read(), Name=os.path.basename(path))
+                part['Content-Disposition'] = f'attachment; filename="{os.path.basename(path)}"'
+                message.attach(part)
 
         # Send email
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_emails, message.as_string())
 
-        st.success("📧 Email sent successfully!")
+        st.success("📧 Email with chart snapshots sent successfully!")
 
     except Exception as e:
         st.error(f"❌ Failed to send email.\n\nError:\n{e}")
