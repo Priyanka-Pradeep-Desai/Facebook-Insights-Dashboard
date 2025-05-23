@@ -15,7 +15,6 @@ from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
 from email.mime.application import MIMEApplication
-import requests
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -225,11 +224,6 @@ loves_by_day = (
 summary_df['Created_Date'] = pd.to_datetime(summary_df['Created_Date']).dt.date
 summary_df = summary_df.merge(likes_by_day, on='Created_Date', how='left')
 summary_df = summary_df.merge(loves_by_day, on='Created_Date', how='left')
-
-import subprocess
-st.write("📦 Installed packages:")
-st.code(subprocess.getoutput("pip list"))
-
 
 st.markdown(
     """
@@ -703,8 +697,12 @@ def should_send_email_gsheet(days_interval=4):
 # === PDF Generation via PDFCrowd ===
 def export_dashboard_url_to_pdf(dashboard_url, output_path='dashboard.pdf'):
     try:
-        api_url = f"https://url2pdf.io/api/generate?url={dashboard_url}"
-        response = requests.get(api_url)
+        api_url = "https://api.html2pdf.app/v1/generate"
+        params = {
+            "url": dashboard_url,
+            "apiKey": "free"  # public "free" tier
+        }
+        response = requests.get(api_url, params=params)
 
         if response.status_code == 200:
             with open(output_path, 'wb') as f:
