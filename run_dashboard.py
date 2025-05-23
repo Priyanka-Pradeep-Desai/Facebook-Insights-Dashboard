@@ -15,7 +15,14 @@ from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
 from email.mime.application import MIMEApplication
-import requests
+from plotly.io import write_image
+
+# Save charts
+fig_reactions.write_image(chart1_path, width=800, height=500, scale=2)
+fig_impressions.write_image(chart2_path, width=800, height=500, scale=2)
+fig_bar.write_image(chart3_path, width=800, height=600, scale=2)
+fig_nested.write_image(chart4_path, width=800, height=500, scale=2)
+
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -669,6 +676,17 @@ st.markdown(f"""
 # # Step 3: Render the table
 # st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
 
+# Create temp image paths
+chart1_path = "/tmp/reactions_chart.png"
+chart2_path = "/tmp/impressions_chart.png"
+chart3_path = "/tmp/top_engagement_chart.png"
+chart4_path = "/tmp/donut_chart.png"
+
+# Save charts
+fig_reactions.write_image(chart1_path, width=800, height=500, scale=2)
+fig_impressions.write_image(chart2_path, width=800, height=500, scale=2)
+fig_bar.write_image(chart3_path, width=800, height=600, scale=2)
+fig_nested.write_image(chart4_path, width=800, height=500, scale=2)
 # === Timestamp Logic ===
 def should_send_email_gsheet(days_interval=4):
     try:
@@ -693,40 +711,6 @@ def should_send_email_gsheet(days_interval=4):
         st.warning(f"⚠️ Error accessing timestamp sheet: {e}")
         return False
 
-# === html file generated===
-def export_dashboard_html_snapshot(summary_df, top_engaged_df, output_path="/tmp/dashboard_snapshot.html"):
-    try:
-        html_content = f"""
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                body {{ font-family: Arial, sans-serif; padding: 20px; }}
-                h2 {{ color: #2c3e50; }}
-                table {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; }}
-                th, td {{ border: 1px solid #ccc; padding: 8px; text-align: left; }}
-                th {{ background-color: #f0f0f0; }}
-            </style>
-        </head>
-        <body>
-            <h2>📊 Facebook Insights Dashboard Snapshot</h2>
-            <h3>✅ Weekly Summary</h3>
-            {summary_df.to_html(index=False, escape=False)}
-
-            <h3>🏆 Top 10 Posts by Engagement</h3>
-            {top_engaged_df[['Content', 'Engagement_Score']].to_html(index=False, escape=False)}
-
-            <p><i>This snapshot was generated and sent automatically.</i></p>
-        </body>
-        </html>
-        """
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(html_content)
-        return output_path
-    except Exception as e:
-        st.warning(f"⚠️ Failed to generate HTML snapshot: {e}")
-        return None
-
 # === Email Automation ===
 if should_send_email_gsheet():
     try:
@@ -734,55 +718,44 @@ if should_send_email_gsheet():
         password = st.secrets["GMAIL_PASS"]
         receiver_emails = ["priyankadesai1999@gmail.com", "pinky2512desai@gmail.com"]
 
-        message = MIMEMultipart("alternative")
-        message["Subject"] = "📊 Facebook Dashboard Link"
+        message = MIMEMultipart()
+        message["Subject"] = "📊 Facebook Dashboard Link & Visuals"
         message["From"] = sender_email
         message["To"] = ", ".join(receiver_emails)
 
-        text = f"Hello,\n\nYour Facebook Insights Dashboard is ready.\n\nView Dashboard: {DASHBOARD_URL}\n\nRegards,\nInsights Bot"
-        html = f"""
-        <html>
-          <body>
-            <p>Hello,<br><br>
-               Your <b>Facebook Insights Dashboard</b> is ready.<br>
-               <a href="{DASHBOARD_URL}" target="_blank">Click here to view the dashboard</a>.<br><br>
-               Regards,<br>
-               Insights Bot
-            </p>
-          </body>
-        </html>
+        body = f"""
+        Hello,
+
+        Your Facebook Insights Dashboard is ready.
+
+        📎 Attached are the visual KPI snapshots and charts.
+
+        🔗 View Dashboard: {DASHBOARD_URL}
+
+        Best,
+        Insights Bot
         """
+        message.attach(MIMEText(body, "plain"))
 
-        part1 = MIMEText(text, "plain")
-        part2 = MIMEText(html, "html")
-        message.attach(part1)
-        message.attach(part2)
+        # Attach charts
+        for path in [chart1_path, chart2_path, chart3_path, chart4_path]:
+            with open(path, "rb") as f:
+                part = MIMEApplication(f.read(), Name=os.path.basename(path))
+                part['Content-Disposition'] = f'attachment; filename="{os.path.basename(path)}"'
+                message.attach(part)
 
-        # 🌐 Create HTML snapshot and attach
-        html_snapshot_path = export_dashboard_html_snapshot(summary_df, top_engaged_posts)
-        
-        if html_snapshot_path and os.path.exists(html_snapshot_path):
-            try:
-                with open(html_snapshot_path, "rb") as f:
-                    html_attach = MIMEApplication(f.read(), _subtype="html")
-                    html_attach.add_header('Content-Disposition', 'attachment', filename="Facebook_Insights_Dashboard.html")
-                    message.attach(html_attach)
-                st.info("✅ HTML snapshot attached successfully.")
-            except Exception as e:
-                st.warning(f"⚠️ Failed to attach HTML snapshot.\n\nError:\n{e}")
-        else:
-            st.warning("⚠️ HTML snapshot not found or failed to generate. Skipping attachment.")
-        
+        # Send email
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_emails, message.as_string())
 
-        st.success("📧 Email sent successfully!")
+        st.success("📧 Email with chart snapshots sent successfully!")
 
     except Exception as e:
         st.error(f"❌ Failed to send email.\n\nError:\n{e}")
 else:
     st.info("✅ No email sent today. It's not time yet.")
+
 
 
 
