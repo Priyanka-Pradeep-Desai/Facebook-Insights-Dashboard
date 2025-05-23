@@ -693,7 +693,7 @@ def should_send_email_gsheet(days_interval=4):
         return False
 
 # === PDF Generation via PDFCrowd ===
-def export_dashboard_url_to_pdf(dashboard_url, output_path='dashboard.pdf'):
+def export_dashboard_url_to_pdf(dashboard_url, output_path='/tmp/dashboard.pdf'):
     try:
         api_url = "https://api.html2pdf.app/v1/generate"
         params = {
@@ -747,11 +747,17 @@ if should_send_email_gsheet():
 
         # 🌐 Convert dashboard URL to PDF and attach
         pdf_path = export_dashboard_url_to_pdf(DASHBOARD_URL)
-        if pdf_path:
-            with open(pdf_path, "rb") as f:
-                attach = MIMEApplication(f.read(), _subtype="pdf")
-                attach.add_header('Content-Disposition', 'attachment', filename="Facebook_Insights_Dashboard.pdf")
-                message.attach(attach)
+        if pdf_path and os.path.exists(pdf_path):
+            try:
+                with open(pdf_path, "rb") as f:
+                    attach = MIMEApplication(f.read(), _subtype="pdf")
+                    attach.add_header('Content-Disposition', 'attachment', filename="Facebook_Insights_Dashboard.pdf")
+                    message.attach(attach)
+                st.info("✅ PDF attached successfully.")
+            except Exception as e:
+                st.warning(f"⚠️ Failed to attach PDF.\n\nError:\n{e}")
+        else:
+            st.warning("⚠️ PDF file not found or failed to generate. Skipping attachment.")
 
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(sender_email, password)
