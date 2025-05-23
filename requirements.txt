@@ -4,5 +4,7 @@ gspread
 oauth2client
 duckdb
 plotly
-kaleido
+selenium
+webdriver-manager
+
 
