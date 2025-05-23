@@ -226,6 +226,11 @@ summary_df['Created_Date'] = pd.to_datetime(summary_df['Created_Date']).dt.date
 summary_df = summary_df.merge(likes_by_day, on='Created_Date', how='left')
 summary_df = summary_df.merge(loves_by_day, on='Created_Date', how='left')
 
+import subprocess
+st.write("📦 Installed packages:")
+st.code(subprocess.getoutput("pip list"))
+
+
 st.markdown(
     """
     <div style='text-align: center; padding-top: 20px; padding-bottom: 10px;'>
