@@ -699,23 +699,24 @@ def export_dashboard_url_to_pdf(dashboard_url, output_path='/tmp/dashboard.pdf')
         api_url = "https://api.html2pdf.app/v1/generate"
         api_key = st.secrets["HTML2PDF_API_KEY"]
         params = {
-            "url": dashboard_url,
+            "url": dashboard_url.strip(),
             "apiKey": api_key
         }
+        st.info(f"📤 Sending request to PDF API with URL: {params['url']}")
         response = requests.get(api_url, params=params)
 
         if response.status_code == 200:
             with open(output_path, 'wb') as f:
                 f.write(response.content)
+            st.success("✅ PDF file generated successfully.")
             return output_path
         else:
-            st.error(f"❌ Failed to generate PDF. Status: {response.status_code} - {response.text}")
+            st.error(f"❌ PDF API Error: {response.status_code} - {response.text}")
             return None
 
     except Exception as e:
-        st.error(f"❌ PDF Generation Error: {e}")
+        st.error(f"❌ PDF Generation Exception: {e}")
         return None
-
 
 # === Email Automation ===
 if should_send_email_gsheet():
@@ -749,19 +750,20 @@ if should_send_email_gsheet():
         message.attach(part2)
 
         # 🌐 Convert dashboard URL to PDF and attach
-        pdf_path = export_dashboard_url_to_pdf(DASHBOARD_URL)
-        try:
+        st.write("🔍 Testing PDF generation:")
+        pdf = export_dashboard_url_to_pdf(DASHBOARD_URL)
+        if pdf:
+            st.download_button("⬇️ Download PDF", data=open(pdf, "rb"), file_name="dashboard.pdf")
+        
+        if pdf_path is not None and os.path.exists(pdf_path):
             with open(pdf_path, "rb") as f:
                 attach = MIMEApplication(f.read(), _subtype="pdf")
-                attach.add_header(
-                    'Content-Disposition',
-                    'attachment',
-                    filename="Facebook_Insights_Dashboard.pdf"
-                )
+                attach.add_header('Content-Disposition', 'attachment', filename="Facebook_Insights_Dashboard.pdf")
                 message.attach(attach)
             st.info("✅ PDF attached successfully.")
-        except Exception as e:
-            st.warning(f"⚠️ Failed to attach PDF.\n\nError:\n{e}")
+        else:
+            st.warning("⚠️ PDF file not found or failed to generate. Skipping attachment.")
+
 
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(sender_email, password)
