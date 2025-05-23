@@ -15,6 +15,7 @@ from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
 from email.mime.application import MIMEApplication
+import requests
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
