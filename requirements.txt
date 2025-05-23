@@ -4,4 +4,4 @@ gspread
 oauth2client
 duckdb
 plotly
-weasyprint
+pdfcrowd
