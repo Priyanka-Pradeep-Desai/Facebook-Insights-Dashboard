@@ -74,15 +74,15 @@ try:
     # Convert Created_Time to datetime
     combined_df['Created_Time'] = pd.to_datetime(combined_df['Created_Time'], errors='coerce')
 
-    # Extract Permlink from Content if Content exists
+    # Extract Permlink from Excel-style HYPERLINK formulas in Content
     if 'Content' in combined_df.columns:
-        def extract_href(html):
-            if not isinstance(html, str):
+        def extract_hyperlink_formula(cell):
+            if not isinstance(cell, str):
                 return None
-            match = re.search(r'href=[\'\"]?([^\'\" >]+)', html)
+            match = re.search(r'HYPERLINK\("(.*?)"', cell)
             return match.group(1) if match else None
 
-        combined_df['Permlink'] = combined_df['Content'].apply(extract_href)
+        combined_df['Permlink'] = combined_df['Content'].apply(extract_hyperlink_formula)
     else:
         st.warning("⚠️ 'Content' column missing — Permlink column not generated.")
         combined_df['Permlink'] = None
