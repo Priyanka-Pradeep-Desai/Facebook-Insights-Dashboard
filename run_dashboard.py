@@ -46,17 +46,18 @@ try:
     cleaned_rows = [row[:num_cols] + [''] * (num_cols - len(row)) for row in data_rows]
     df = pd.DataFrame(cleaned_rows, columns=headers)
 
-    # Extract Permlink from =HYPERLINK(...) Excel formula directly using string split (not regex)
+    # Convert numeric columns where possible
+    for col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors='ignore')
+
+    # Extract Permlink using structured pattern search from known =HYPERLINK format
     def extract_permalink(cell):
         if not isinstance(cell, str):
             return None
-        if cell.startswith('=HYPERLINK("'):
-            try:
-                return cell.split('"')[1]  # takes the first quoted part
-            except IndexError:
-                return None
-        if 'http' in cell:
-            return cell.split('http', 1)[-1].split('"')[0].split("',")[0].strip().split(')')[0].strip()
+        if cell.startswith('=HYPERLINK('):
+            parts = cell.split('"')
+            if len(parts) > 1:
+                return parts[1]  # The first quoted string is the URL
         return None
 
     if 'Content' in df.columns:
@@ -64,25 +65,21 @@ try:
     else:
         df['Permlink'] = None
 
-    # Convert numeric columns where possible
-    for col in df.columns:
-        df[col] = pd.to_numeric(df[col], errors='ignore')
-
     # Group and average duplicates
     column_groups = defaultdict(list)
     for col in df.columns:
-        base = re.sub(r'_\d+$', '', col)  # Base name without trailing _1, _2, etc.
+        base = re.sub(r'_(\d+)$', '', col)
         column_groups[base].append(col)
 
     combined_df = pd.DataFrame()
     for base, cols in column_groups.items():
-        if len(cols) == 1:
-            combined_df[base] = df[cols[0]]
-        else:
+        try:
             numeric_cols = df[cols].apply(pd.to_numeric, errors='coerce')
             combined_df[base] = numeric_cols.mean(axis=1).round(0)
+        except:
+            combined_df[base] = df[cols[0]]
 
-    # Add non-numeric fields like Content and Created_Time if not already included
+    # Preserve key columns
     for col in ['Content', 'Created_Time', 'Permlink']:
         if col in df.columns:
             combined_df[col] = df[col]
@@ -108,7 +105,8 @@ weekly_df = df[(df['Created_Time'] >= start_date) & (df['Created_Time'] <= end_d
 if 'Permlink' not in weekly_df.columns:
     weekly_df['Permlink'] = df['Permlink']
 
-# Continue your dashboard logic with weekly_df..
+# Continue your dashboard logic with weekly_df...
+
 
 if weekly_df.empty:
     st.warning("⚠️ No data available for the last 10 days.")
