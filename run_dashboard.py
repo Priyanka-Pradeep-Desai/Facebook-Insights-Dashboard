@@ -35,18 +35,27 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-# Step 3: Load raw data and process duplicate columns
+# Step 3: Load raw data and extract hyperlinks directly from cells
 try:
-    raw_data = worksheet.get_all_values()
-    header_row = raw_data[1]  # Assuming second row is header
-    data_rows = raw_data[2:]  # Data starts from row 3
-
-    # Normalize headers
+    header_row = worksheet.row_values(2)
     headers = [h.strip().replace(" ", "_").replace(".", "_") for h in header_row]
     num_cols = len(headers)
-    cleaned_rows = [row[:num_cols] + [''] * (num_cols - len(row)) for row in data_rows]
+    num_rows = worksheet.row_count - 2  # Starting from row 3
 
-    df = pd.DataFrame(cleaned_rows, columns=headers)
+    # Fetch all cells from A3 to the end of the sheet
+    cells = worksheet.range(f"A3:{gspread.utils.rowcol_to_a1(num_rows + 2, num_cols)}")
+    rows = []
+    for r in range(num_rows):
+        row_data = []
+        for c in range(num_cols):
+            cell = cells[r * num_cols + c]
+            if cell.hyperlink:
+                row_data.append(cell.hyperlink)
+            else:
+                row_data.append(cell.value)
+        rows.append(row_data)
+
+    df = pd.DataFrame(rows, columns=headers)
 
     # Convert numeric columns where possible
     for col in df.columns:
@@ -74,21 +83,9 @@ try:
     # Convert Created_Time to datetime
     combined_df['Created_Time'] = pd.to_datetime(combined_df['Created_Time'], errors='coerce')
 
-    # Extract Permlink from Content using string slicing
-    if 'Content' in combined_df.columns:
-        def extract_url(cell):
-            if not isinstance(cell, str):
-                return None
-            if cell.startswith("=HYPERLINK"):
-                start = cell.find('"') + 1
-                end = cell.find('"', start)
-                return cell[start:end] if start > 0 and end > start else None
-            return None
-
-        combined_df['Permlink'] = combined_df['Content'].apply(extract_url)
-    else:
-        st.warning("⚠️ 'Content' column missing — Permlink column not generated.")
-        combined_df['Permlink'] = None
+    # Use Content column if not already in combined_df
+    if 'Content' in combined_df.columns and 'Permlink' not in combined_df.columns:
+        combined_df['Permlink'] = df['Content']  # now Content holds the actual hyperlink due to cell.hyperlink logic
 
 except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
