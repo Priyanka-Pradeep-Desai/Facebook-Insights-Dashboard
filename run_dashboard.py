@@ -44,7 +44,7 @@ try:
     data = []
     row = []
     for i, cell in enumerate(cells):
-        row.append(cell.input_value)
+        row.append(cell.value)
         if (i + 1) % len(headers) == 0:
             data.append(row)
             row = []
