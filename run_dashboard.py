@@ -74,18 +74,15 @@ try:
     # Convert Created_Time to datetime
     combined_df['Created_Time'] = pd.to_datetime(combined_df['Created_Time'], errors='coerce')
 
-    # Extract Permlink from Content (supports plain text or Excel formula format)
+    # Extract Permlink from Content using string slicing
     if 'Content' in combined_df.columns:
         def extract_url(cell):
             if not isinstance(cell, str):
                 return None
-            # Try to extract from =HYPERLINK("url", "label") or normal URLs
-            hyperlink_match = re.search(r'HYPERLINK\(["\'](https?://[^"\']+)', cell)
-            url_match = re.search(r'(https?://[^"\')\s]+)', cell)
-            if hyperlink_match:
-                return hyperlink_match.group(1)
-            elif url_match:
-                return url_match.group(1)
+            if cell.startswith("=HYPERLINK"):
+                start = cell.find('"') + 1
+                end = cell.find('"', start)
+                return cell[start:end] if start > 0 and end > start else None
             return None
 
         combined_df['Permlink'] = combined_df['Content'].apply(extract_url)
@@ -110,9 +107,6 @@ weekly_df = df[(df['Created_Time'] >= start_date) & (df['Created_Time'] <= end_d
 # Confirm Permlink column exists
 if 'Permlink' not in weekly_df.columns:
     weekly_df['Permlink'] = df['Permlink']
-
-# Continue your dashboard logic with weekly_df...
-
 
 if weekly_df.empty:
     st.warning("⚠️ No data available for the last 10 days.")
