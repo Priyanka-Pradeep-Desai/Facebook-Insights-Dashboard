@@ -39,23 +39,9 @@ except Exception as e:
 try:
     header_row = worksheet.row_values(2)
     headers = [h.strip().replace(" ", "_").replace(".", "_") for h in header_row]
-    num_cols = len(headers)
-    num_rows = worksheet.row_count - 2  # Starting from row 3
+    data_rows = worksheet.get_all_values()[2:]  # values only, starting from row 3
 
-    # Fetch all cells from A3 to the end of the sheet
-    cells = worksheet.range(f"A3:{gspread.utils.rowcol_to_a1(num_rows + 2, num_cols)}")
-    rows = []
-    for r in range(num_rows):
-        row_data = []
-        for c in range(num_cols):
-            cell = cells[r * num_cols + c]
-            if cell.hyperlink:
-                row_data.append(cell.hyperlink)
-            else:
-                row_data.append(cell.value)
-        rows.append(row_data)
-
-    df = pd.DataFrame(rows, columns=headers)
+    df = pd.DataFrame(data_rows, columns=headers)
 
     # Convert numeric columns where possible
     for col in df.columns:
@@ -83,9 +69,20 @@ try:
     # Convert Created_Time to datetime
     combined_df['Created_Time'] = pd.to_datetime(combined_df['Created_Time'], errors='coerce')
 
-    # Use Content column if not already in combined_df
-    if 'Content' in combined_df.columns and 'Permlink' not in combined_df.columns:
-        combined_df['Permlink'] = df['Content']  # now Content holds the actual hyperlink due to cell.hyperlink logic
+    # Extract Permlink from =HYPERLINK("url", "label") formulas or embedded URLs
+    def extract_url_from_hyperlink_formula(cell):
+        if not isinstance(cell, str):
+            return None
+        match = re.search(r'=HYPERLINK\(["\'](https?://[^"\']+)', cell)
+        if match:
+            return match.group(1)
+        match = re.search(r'(https?://[^\s)"\']+)', cell)
+        return match.group(1) if match else None
+
+    if 'Content' in combined_df.columns:
+        combined_df['Permlink'] = combined_df['Content'].apply(extract_url_from_hyperlink_formula)
+    else:
+        combined_df['Permlink'] = None
 
 except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
