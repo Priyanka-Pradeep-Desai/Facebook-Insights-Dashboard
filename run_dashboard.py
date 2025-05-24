@@ -24,7 +24,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
 # Step 2: Open the spreadsheet by URL
-SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1bkO5_A2YFjXBaa_gHNCDi2euiH6rvuLBLMy08cpi_kk/edit"
+SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1apkZJsJHEd1HfDoHBAx9cPM-BmJxjIRiagB_F5KehHo/edit"
 DASHBOARD_URL = "https://facebook-insights-dashboard-elxpadltekfwuqpbur66q2.streamlit.app/"
 TAB_NAME = "Facebook: Post Insights"
 
@@ -35,22 +35,22 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-# Step 3: Load raw data and extract hyperlinks directly from cells
+# Step 3: Load raw data and extract hyperlinks using cell formulas
 try:
     header_row = worksheet.row_values(2)
     headers = [h.strip().replace(" ", "_").replace(".", "_") for h in header_row]
-    data_rows = worksheet.get_all_values()[2:]  # all rows after header
+    cells = worksheet.range(3, 1, worksheet.row_count, len(headers))
 
-    # Ensure all rows match column count
-    num_cols = len(headers)
-    cleaned_rows = []
-    for row in data_rows:
-        row = row[:num_cols] + [''] * (num_cols - len(row))
-        cleaned_rows.append(row)
+    data = []
+    row = []
+    for i, cell in enumerate(cells):
+        row.append(cell.input_value)
+        if (i + 1) % len(headers) == 0:
+            data.append(row)
+            row = []
 
-    df = pd.DataFrame(cleaned_rows, columns=headers)
+    df = pd.DataFrame(data, columns=headers)
 
-    # Extract Permlink from HYPERLINK formula like =HYPERLINK("URL","text")
     def extract_permalink(cell):
         if not isinstance(cell, str):
             return None
@@ -60,20 +60,14 @@ try:
                 return parts[1]
         return None
 
-    if 'Content' in df.columns:
-        df['Permlink'] = df['Content'].apply(extract_permalink)
-    else:
-        df['Permlink'] = None
+    df['Permlink'] = df['Content'].apply(extract_permalink) if 'Content' in df.columns else None
 
-    # Convert Created_Time to datetime
     if 'Created_Time' in df.columns:
         df['Created_Time'] = pd.to_datetime(df['Created_Time'], errors='coerce')
 
-    # Convert all numerics
     for col in df.columns:
         df[col] = pd.to_numeric(df[col], errors='ignore')
 
-    # Average duplicated columns (e.g., Post_Clicks_1, Post_Clicks_2)
     deduped = {}
     for col in df.columns:
         base = re.sub(r'_(\d+)$', '', col)
@@ -87,7 +81,6 @@ try:
         except:
             combined_df[base] = df[cols[0]]
 
-    # Restore key non-numeric columns
     for col in ['Content', 'Created_Time', 'Permlink']:
         if col in df.columns:
             combined_df[col] = df[col]
@@ -109,7 +102,6 @@ weekly_df = df[(df['Created_Time'] >= start_date) & (df['Created_Time'] <= end_d
 # Confirm Permlink column exists
 if 'Permlink' not in weekly_df.columns:
     weekly_df['Permlink'] = df['Permlink']
-
 
 if weekly_df.empty:
     st.warning("⚠️ No data available for the last 10 days.")
