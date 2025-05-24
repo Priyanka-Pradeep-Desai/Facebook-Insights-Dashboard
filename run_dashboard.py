@@ -79,7 +79,8 @@ try:
         def extract_hyperlink_formula(cell):
             if not isinstance(cell, str):
                 return None
-            match = re.search(r'HYPERLINK\("(.*?)"', cell)
+            # Match either raw string or Excel formula style
+            match = re.search(r'=HYPERLINK\("(.*?)"', cell)
             return match.group(1) if match else None
 
         combined_df['Permlink'] = combined_df['Content'].apply(extract_hyperlink_formula)
