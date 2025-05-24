@@ -676,29 +676,30 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# # 🔗 Clickable Post Table – Preserves original look, polished
-# st.markdown(
-#     """
-#     <div style='text-align: center; padding-top: 40px; padding-bottom: 30px;'>
-#         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-#             🔗 Top Links Clicked Posts
-#         </span>
-#     </div>
-#     """,
-#     unsafe_allow_html=True
-# )
+# 🔗 Clickable Post Table – Preserves original look, polished
+st.markdown(
+    """
+    <div style='text-align: center; padding-top: 40px; padding-bottom: 30px;'>
+        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
+            🔗 Top Links Clicked Posts
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
-# # Step 1: Select and sort by clicks
-# link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactions', 'Permanent_Link']].copy()
-# link_table = link_table.sort_values(by='Post_Clicks', ascending=False)  # <-- this line sorts it
+# Step 1: Select and sort by clicks
+link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactions', 'Permlink']].copy()
+link_table = link_table.sort_values(by='Post_Clicks', ascending=False)  # <-- this line sorts it
 
-# # Step 2: Make links clickable
-# link_table['Permanent_Link'] = link_table['Permanent_Link'].apply(
-#     lambda url: f'<a href="{url}" target="_blank">View Post</a>'
-# )
+# Step 2: Make links clickable
+link_table['Permanent_Link'] = link_table['Permlink'].apply(
+    lambda url: f'<a href="{url}" target="_blank">View Post</a>'
+)
 
-# # Step 3: Render the table
-# st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
+# Step 3: Render the table
+st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
+
 # === Timestamp Logic ===
 def should_send_email_gsheet(days_interval=4):
     try:
