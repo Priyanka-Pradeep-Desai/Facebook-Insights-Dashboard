@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+														# -*- coding: utf-8 -*-
 import gspread
 import pandas as pd
 import duckdb
@@ -14,8 +14,6 @@ import json
 from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
-import re
-from collections import defaultdict
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -35,68 +33,32 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-# Step 3: Load raw data and extract hyperlinks using get_all_values + regex
+# Step 3: Load data into a DataFrame while dropping duplicate headers entirely
 try:
-    raw_data = worksheet.get_all_values()
-    data_rows = raw_data[2:]  # Skip first two rows
-    headers = [h.strip().replace(" ", "_").replace(".", "_") for h in raw_data[1]]
-    df = pd.DataFrame(data_rows, columns=headers)
+    raw_headers = worksheet.row_values(2)
+    seen = set()
+    filtered_headers = []
+    for col in raw_headers:
+        if col not in seen:
+            seen.add(col)
+            filtered_headers.append(col)
 
-    def extract_permalink(cell):
-        if isinstance(cell, str) and 'HYPERLINK' in cell:
-            match = re.search(r'HYPERLINK\(\"(.*?)\"', cell)
-            if match:
-                return match.group(1)
-        return None
+    data = worksheet.get_all_records(head=2, expected_headers=filtered_headers)
+    df = pd.DataFrame(data)
 
-    df['Permlink'] = df['Content'].apply(extract_permalink) if 'Content' in df.columns else None
-
-    if 'Created_Time' in df.columns:
-        df['Created_Time'] = pd.to_datetime(df['Created_Time'], errors='coerce')
-
-    for col in df.columns:
-        df[col] = pd.to_numeric(df[col], errors='ignore')
-
-    deduped = {}
-    for col in df.columns:
-        base = re.sub(r'_(\d+)$', '', col)
-        deduped.setdefault(base, []).append(col)
-
-    combined_df = pd.DataFrame()
-    for base, cols in deduped.items():
-        try:
-            numeric_cols = df[cols].apply(pd.to_numeric, errors='coerce')
-            combined_df[base] = numeric_cols.mean(axis=1).round(0)
-        except:
-            combined_df[base] = df[cols[0]]
-
-    for col in ['Content', 'Created_Time', 'Permlink']:
-        if col in df.columns:
-            combined_df[col] = df[col]
+    df.columns = pd.Index(filtered_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
+    df['Created_Time'] = pd.to_datetime(df['Created_Time'])
 
 except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
 
-# === Use combined_df as the cleaned DataFrame ===
-df = combined_df.copy()
-
-# Filter the last 10 calendar days
+# Step 4: Filter last 10 calendar days (including today)
 today = pd.Timestamp.now().normalize()
 start_date = today - pd.Timedelta(days=9)
 end_date = today
 
-weekly_df = df[(df['Created_Time'] >= start_date) & (df['Created_Time'] <= end_date)].copy()
-
-# Confirm Permlink column exists
-if 'Permlink' not in weekly_df.columns:
-    weekly_df['Permlink'] = df['Permlink']
-
-# Display a preview of the extracted permalinks
-st.markdown("""
-### 🔗 Preview of Extracted Permalinks
-""")
-st.dataframe(weekly_df[['Content', 'Permlink']].head(10))
+weekly_df = df[(df['Created_Time'] >= start_date) & (df['Created_Time'] <= end_date)]
 
 if weekly_df.empty:
     st.warning("⚠️ No data available for the last 10 days.")
@@ -681,30 +643,29 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 🔗 Clickable Post Table – Preserves original look, polished
-st.markdown(
-    """
-    <div style='text-align: center; padding-top: 40px; padding-bottom: 30px;'>
-        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-            🔗 Top Links Clicked Posts
-        </span>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# # 🔗 Clickable Post Table – Preserves original look, polished
+# st.markdown(
+#     """
+#     <div style='text-align: center; padding-top: 40px; padding-bottom: 30px;'>
+#         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
+#             🔗 Top Links Clicked Posts
+#         </span>
+#     </div>
+#     """,
+#     unsafe_allow_html=True
+# )
 
-# Step 1: Select and sort by clicks
-link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactions', 'Permlink']].copy()
-link_table = link_table.sort_values(by='Post_Clicks', ascending=False)  # <-- this line sorts it
+# # Step 1: Select and sort by clicks
+# link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactions', 'Permanent_Link']].copy()
+# link_table = link_table.sort_values(by='Post_Clicks', ascending=False)  # <-- this line sorts it
 
-# Step 2: Make links clickable
-link_table['Permanent_Link'] = link_table['Permlink'].apply(
-    lambda url: f'<a href="{url}" target="_blank">View Post</a>'
-)
+# # Step 2: Make links clickable
+# link_table['Permanent_Link'] = link_table['Permanent_Link'].apply(
+#     lambda url: f'<a href="{url}" target="_blank">View Post</a>'
+# )
 
-# Step 3: Render the table
-st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
-
+# # Step 3: Render the table
+# st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
 # === Timestamp Logic ===
 def should_send_email_gsheet(days_interval=4):
     try:
@@ -762,5 +723,4 @@ if should_send_email_gsheet():
     except Exception as e:
         st.error(f"❌ Failed to send email.\n\nError:\n{e}")
 else:
-    st.info("✅ No email sent today. It's not time yet.")
-
+    st.info("✅ No email sent today. It's not time yet.") 
