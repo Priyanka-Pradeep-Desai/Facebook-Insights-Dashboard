@@ -24,7 +24,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
 # Step 2: Open the spreadsheet by URL
-SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1apkZJsJHEd1HfDoHBAx9cPM-BmJxjIRiagB_F5KehHo/edit"
+SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1bkO5_A2YFjXBaa_gHNCDi2euiH6rvuLBLMy08cpi_kk/edit"
 DASHBOARD_URL = "https://facebook-insights-dashboard-elxpadltekfwuqpbur66q2.streamlit.app/"
 TAB_NAME = "Facebook: Post Insights"
 
