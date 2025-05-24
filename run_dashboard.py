@@ -71,12 +71,16 @@ try:
     # Convert Created_Time to datetime
     combined_df['Created_Time'] = pd.to_datetime(combined_df['Created_Time'], errors='coerce')
 
-    # Extract Permlink from Content
-    def extract_href(html):
-        match = re.search(r'href=[\'\"]?([^\'\" >]+)', str(html))
-        return match.group(1) if match else None
+    # Extract Permlink from Content if Content exists
+    if 'Content' in combined_df.columns:
+        def extract_href(html):
+            match = re.search(r'href=[\'\"]?([^\'\" >]+)', str(html))
+            return match.group(1) if match else None
 
-    combined_df['Permlink'] = combined_df['Content'].apply(extract_href)
+        combined_df['Permlink'] = combined_df['Content'].apply(extract_href)
+    else:
+        st.warning("⚠️ 'Content' column missing — Permlink column not generated.")
+        combined_df['Permlink'] = None
 
 except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
@@ -85,13 +89,16 @@ except Exception as e:
 # === Use combined_df as the cleaned DataFrame ===
 df = combined_df.copy()
 
-# Remaining processing continues as before (filtering, plotting, etc.)...
-
+# Filter the last 10 calendar days
 today = pd.Timestamp.now().normalize()
 start_date = today - pd.Timedelta(days=9)
 end_date = today
 
-weekly_df = df[(df['Created_Time'] >= start_date) & (df['Created_Time'] <= end_date)]
+weekly_df = df[(df['Created_Time'] >= start_date) & (df['Created_Time'] <= end_date)].copy()
+
+# Confirm Permlink column exists
+if 'Permlink' not in weekly_df.columns:
+    weekly_df['Permlink'] = df['Permlink']
 
 if weekly_df.empty:
     st.warning("⚠️ No data available for the last 10 days.")
