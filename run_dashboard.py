@@ -41,7 +41,28 @@ try:
     headers = [h.strip().replace(" ", "_").replace(".", "_") for h in header_row]
     data_rows = worksheet.get_all_values()[2:]  # values only, starting from row 3
 
-    df = pd.DataFrame(data_rows, columns=headers)
+    # Pad each row to ensure they match the number of headers
+    num_cols = len(headers)
+    cleaned_rows = [row[:num_cols] + [''] * (num_cols - len(row)) for row in data_rows]
+    df = pd.DataFrame(cleaned_rows, columns=headers)
+
+    # Extract Permlink from =HYPERLINK(...) Excel formula directly using string split (not regex)
+    def extract_permalink(cell):
+        if not isinstance(cell, str):
+            return None
+        if cell.startswith('=HYPERLINK("'):
+            try:
+                return cell.split('"')[1]  # takes the first quoted part
+            except IndexError:
+                return None
+        if 'http' in cell:
+            return cell.split('http', 1)[-1].split('"')[0].split("',")[0].strip().split(')')[0].strip()
+        return None
+
+    if 'Content' in df.columns:
+        df['Permlink'] = df['Content'].apply(extract_permalink)
+    else:
+        df['Permlink'] = None
 
     # Convert numeric columns where possible
     for col in df.columns:
@@ -62,27 +83,12 @@ try:
             combined_df[base] = numeric_cols.mean(axis=1).round(0)
 
     # Add non-numeric fields like Content and Created_Time if not already included
-    for col in ['Content', 'Created_Time']:
+    for col in ['Content', 'Created_Time', 'Permlink']:
         if col in df.columns:
             combined_df[col] = df[col]
 
     # Convert Created_Time to datetime
     combined_df['Created_Time'] = pd.to_datetime(combined_df['Created_Time'], errors='coerce')
-
-    # Extract Permlink from =HYPERLINK("url", "label") formulas or embedded URLs
-    def extract_url_from_hyperlink_formula(cell):
-        if not isinstance(cell, str):
-            return None
-        match = re.search(r'=HYPERLINK\(["\'](https?://[^"\']+)', cell)
-        if match:
-            return match.group(1)
-        match = re.search(r'(https?://[^\s)"\']+)', cell)
-        return match.group(1) if match else None
-
-    if 'Content' in combined_df.columns:
-        combined_df['Permlink'] = combined_df['Content'].apply(extract_url_from_hyperlink_formula)
-    else:
-        combined_df['Permlink'] = None
 
 except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
@@ -101,6 +107,8 @@ weekly_df = df[(df['Created_Time'] >= start_date) & (df['Created_Time'] <= end_d
 # Confirm Permlink column exists
 if 'Permlink' not in weekly_df.columns:
     weekly_df['Permlink'] = df['Permlink']
+
+# Continue your dashboard logic with weekly_df..
 
 if weekly_df.empty:
     st.warning("⚠️ No data available for the last 10 days.")
