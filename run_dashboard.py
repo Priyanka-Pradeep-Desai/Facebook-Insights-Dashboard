@@ -35,29 +35,18 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-# Step 3: Load raw data and extract hyperlinks using cell formulas
+# Step 3: Load raw data and extract hyperlinks using get_all_values + regex
 try:
-    header_row = worksheet.row_values(2)
-    headers = [h.strip().replace(" ", "_").replace(".", "_") for h in header_row]
-    cells = worksheet.range(3, 1, worksheet.row_count, len(headers))
-
-    data = []
-    row = []
-    for i, cell in enumerate(cells):
-        row.append(cell.value)
-        if (i + 1) % len(headers) == 0:
-            data.append(row)
-            row = []
-
-    df = pd.DataFrame(data, columns=headers)
+    raw_data = worksheet.get_all_values()
+    data_rows = raw_data[2:]  # Skip first two rows
+    headers = [h.strip().replace(" ", "_").replace(".", "_") for h in raw_data[1]]
+    df = pd.DataFrame(data_rows, columns=headers)
 
     def extract_permalink(cell):
-        if not isinstance(cell, str):
-            return None
-        if cell.startswith('=HYPERLINK("'):
-            parts = cell.split('"')
-            if len(parts) >= 2:
-                return parts[1]
+        if isinstance(cell, str) and 'HYPERLINK' in cell:
+            match = re.search(r'HYPERLINK\(\"(.*?)\"', cell)
+            if match:
+                return match.group(1)
         return None
 
     df['Permlink'] = df['Content'].apply(extract_permalink) if 'Content' in df.columns else None
@@ -102,6 +91,12 @@ weekly_df = df[(df['Created_Time'] >= start_date) & (df['Created_Time'] <= end_d
 # Confirm Permlink column exists
 if 'Permlink' not in weekly_df.columns:
     weekly_df['Permlink'] = df['Permlink']
+
+# Display a preview of the extracted permalinks
+st.markdown("""
+### 🔗 Preview of Extracted Permalinks
+""")
+st.dataframe(weekly_df[['Content', 'Permlink']].head(10))
 
 if weekly_df.empty:
     st.warning("⚠️ No data available for the last 10 days.")
