@@ -39,25 +39,25 @@ except Exception as e:
 try:
     header_row = worksheet.row_values(2)
     headers = [h.strip().replace(" ", "_").replace(".", "_") for h in header_row]
-    data_rows = worksheet.get_all_values()[2:]  # values only, starting from row 3
+    data_rows = worksheet.get_all_values()[2:]  # all rows after header
 
-    # Pad each row to ensure they match the number of headers
+    # Ensure all rows match column count
     num_cols = len(headers)
-    cleaned_rows = [row[:num_cols] + [''] * (num_cols - len(row)) for row in data_rows]
+    cleaned_rows = []
+    for row in data_rows:
+        row = row[:num_cols] + [''] * (num_cols - len(row))
+        cleaned_rows.append(row)
+
     df = pd.DataFrame(cleaned_rows, columns=headers)
 
-    # Convert numeric columns where possible
-    for col in df.columns:
-        df[col] = pd.to_numeric(df[col], errors='ignore')
-
-    # Extract Permlink using structured pattern search from known =HYPERLINK format
+    # Extract Permlink from HYPERLINK formula like =HYPERLINK("URL","text")
     def extract_permalink(cell):
         if not isinstance(cell, str):
             return None
-        if cell.startswith('=HYPERLINK('):
+        if cell.startswith('=HYPERLINK("'):
             parts = cell.split('"')
-            if len(parts) > 1:
-                return parts[1]  # The first quoted string is the URL
+            if len(parts) >= 2:
+                return parts[1]
         return None
 
     if 'Content' in df.columns:
@@ -65,27 +65,32 @@ try:
     else:
         df['Permlink'] = None
 
-    # Group and average duplicates
-    column_groups = defaultdict(list)
+    # Convert Created_Time to datetime
+    if 'Created_Time' in df.columns:
+        df['Created_Time'] = pd.to_datetime(df['Created_Time'], errors='coerce')
+
+    # Convert all numerics
+    for col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors='ignore')
+
+    # Average duplicated columns (e.g., Post_Clicks_1, Post_Clicks_2)
+    deduped = {}
     for col in df.columns:
         base = re.sub(r'_(\d+)$', '', col)
-        column_groups[base].append(col)
+        deduped.setdefault(base, []).append(col)
 
     combined_df = pd.DataFrame()
-    for base, cols in column_groups.items():
+    for base, cols in deduped.items():
         try:
             numeric_cols = df[cols].apply(pd.to_numeric, errors='coerce')
             combined_df[base] = numeric_cols.mean(axis=1).round(0)
         except:
             combined_df[base] = df[cols[0]]
 
-    # Preserve key columns
+    # Restore key non-numeric columns
     for col in ['Content', 'Created_Time', 'Permlink']:
         if col in df.columns:
             combined_df[col] = df[col]
-
-    # Convert Created_Time to datetime
-    combined_df['Created_Time'] = pd.to_datetime(combined_df['Created_Time'], errors='coerce')
 
 except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
@@ -104,8 +109,6 @@ weekly_df = df[(df['Created_Time'] >= start_date) & (df['Created_Time'] <= end_d
 # Confirm Permlink column exists
 if 'Permlink' not in weekly_df.columns:
     weekly_df['Permlink'] = df['Permlink']
-
-# Continue your dashboard logic with weekly_df...
 
 
 if weekly_df.empty:
