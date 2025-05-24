@@ -14,6 +14,8 @@ import json
 from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
+import re
+from collections import defaultdict
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -33,27 +35,58 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-# Step 3: Load data into a DataFrame while dropping duplicate headers entirely
+# Step 3: Load raw data and process duplicate columns
 try:
-    raw_headers = worksheet.row_values(2)
-    seen = set()
-    filtered_headers = []
-    for col in raw_headers:
-        if col not in seen:
-            seen.add(col)
-            filtered_headers.append(col)
+    raw_data = worksheet.get_all_values()
+    header_row = raw_data[1]  # Assuming second row is header
+    data_rows = raw_data[2:]  # Data starts from row 3
 
-    data = worksheet.get_all_records(head=2, expected_headers=filtered_headers)
-    df = pd.DataFrame(data)
+    # Normalize headers
+    headers = [h.strip().replace(" ", "_").replace(".", "_") for h in header_row]
+    df = pd.DataFrame(data_rows, columns=headers)
 
-    df.columns = pd.Index(filtered_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
-    df['Created_Time'] = pd.to_datetime(df['Created_Time'])
+    # Convert numeric columns where possible
+    for col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors='ignore')
+
+    # Group and average duplicates
+    column_groups = defaultdict(list)
+    for col in df.columns:
+        base = re.sub(r'_\d+$', '', col)  # Base name without trailing _1, _2, etc.
+        column_groups[base].append(col)
+
+    combined_df = pd.DataFrame()
+    for base, cols in column_groups.items():
+        if len(cols) == 1:
+            combined_df[base] = df[cols[0]]
+        else:
+            numeric_cols = df[cols].apply(pd.to_numeric, errors='coerce')
+            combined_df[base] = numeric_cols.mean(axis=1).round(0)
+
+    # Add non-numeric fields like Content and Created_Time if not already included
+    for col in ['Content', 'Created_Time']:
+        if col in df.columns:
+            combined_df[col] = df[col]
+
+    # Convert Created_Time to datetime
+    combined_df['Created_Time'] = pd.to_datetime(combined_df['Created_Time'], errors='coerce')
+
+    # Extract Permlink from Content
+    def extract_href(html):
+        match = re.search(r'href=[\'\"]?([^\'\" >]+)', str(html))
+        return match.group(1) if match else None
+
+    combined_df['Permlink'] = combined_df['Content'].apply(extract_href)
 
 except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
 
-# Step 4: Filter last 10 calendar days (including today)
+# === Use combined_df as the cleaned DataFrame ===
+df = combined_df.copy()
+
+# Remaining processing continues as before (filtering, plotting, etc.)...
+
 today = pd.Timestamp.now().normalize()
 start_date = today - pd.Timedelta(days=9)
 end_date = today
