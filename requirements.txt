@@ -4,7 +4,6 @@ gspread
 oauth2client
 duckdb
 plotly
-kaleido
 
 
 
