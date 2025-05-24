@@ -43,7 +43,10 @@ try:
 
     # Normalize headers
     headers = [h.strip().replace(" ", "_").replace(".", "_") for h in header_row]
-    df = pd.DataFrame(data_rows, columns=headers)
+    num_cols = len(headers)
+    cleaned_rows = [row[:num_cols] + [''] * (num_cols - len(row)) for row in data_rows]
+
+    df = pd.DataFrame(cleaned_rows, columns=headers)
 
     # Convert numeric columns where possible
     for col in df.columns:
@@ -74,7 +77,9 @@ try:
     # Extract Permlink from Content if Content exists
     if 'Content' in combined_df.columns:
         def extract_href(html):
-            match = re.search(r'href=[\'\"]?([^\'\" >]+)', str(html))
+            if not isinstance(html, str):
+                return None
+            match = re.search(r'href=[\'\"]?([^\'\" >]+)', html)
             return match.group(1) if match else None
 
         combined_df['Permlink'] = combined_df['Content'].apply(extract_href)
