@@ -1,4 +1,4 @@
-														# -*- coding: utf-8 -*-import gspread
+import gspread														# -*- coding: utf-8 -*-import gspread
 import pandas as pd
 import duckdb
 import streamlit as st
