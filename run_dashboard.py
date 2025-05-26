@@ -55,19 +55,22 @@ except Exception as e:
     st.stop()
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
-def extract_hyperlinks_from_formula(worksheet):
-    # Get the formulas from column A, starting at A3
-    formulas = worksheet.col_values(1)[2:]  # Skip header rows (1-indexed in gspread)
+def extract_hyperlinks_from_formula(worksheet, start_row=3):
+    num_rows = worksheet.row_count
+    cell_range = worksheet.range(f"A{start_row}:A{num_rows}")
+    
+    hyperlinks = []
     url_pattern = r'HYPERLINK\("([^"]+)"'
 
-    hyperlinks = []
-    for formula in formulas:
+    for cell in cell_range:
+        formula = cell.input_value  # Access raw formula
         match = re.search(url_pattern, formula)
         if match:
             hyperlinks.append(match.group(1))
         else:
             hyperlinks.append(None)
-    return hyperlinks[:len(df)]  # Align length with df
+
+    return hyperlinks[:len(df)]
 
 # Add the hyperlink column to df
 df['Hyperlink'] = extract_hyperlinks_from_formula(worksheet)
