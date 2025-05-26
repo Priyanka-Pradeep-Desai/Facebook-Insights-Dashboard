@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
+import re
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -53,19 +54,23 @@ except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
 
-# Add a column for hyperlinks extracted from cell metadata
-def extract_hyperlinks(worksheet, content_col_idx=1):  # A = index 1 in gspread
+# Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
+def extract_hyperlinks_from_formula(worksheet):
+    # Get the formulas from column A, starting at A3
+    formulas = worksheet.col_values(1)[2:]  # Skip header rows (1-indexed in gspread)
+    url_pattern = r'HYPERLINK\("([^"]+)"'
+
     hyperlinks = []
-    all_cells = worksheet.range(f"A3:A{worksheet.row_count}")
-    for cell in all_cells:
-        if cell.hyperlink:
-            hyperlinks.append(cell.hyperlink)
+    for formula in formulas:
+        match = re.search(url_pattern, formula)
+        if match:
+            hyperlinks.append(match.group(1))
         else:
             hyperlinks.append(None)
-    return hyperlinks[:len(df)]  # Match DataFrame length
+    return hyperlinks[:len(df)]  # Align length with df
 
-# Run the extraction (Column A is index 1)
-df['Hyperlink'] = extract_hyperlinks(worksheet, content_col_idx=1)
+# Add the hyperlink column to df
+df['Hyperlink'] = extract_hyperlinks_from_formula(worksheet)
 
 # Step 4: Filter last 10 calendar days (including today)
 today = pd.Timestamp.now().normalize()
