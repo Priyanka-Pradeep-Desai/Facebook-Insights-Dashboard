@@ -55,25 +55,28 @@ except Exception as e:
     st.stop()
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
-def extract_hyperlinks_from_formula(worksheet, start_row=3):
-    num_rows = worksheet.row_count
-    cell_range = worksheet.range(f"A{start_row}:A{num_rows}")
+def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
+    # Use built-in gspread method to get raw formulas
+    formulas = worksheet.get(f"A{start_row}:A", value_render_option='FORMULA')
+    
+    url_pattern = r'HYPERLINK\("([^"]+)"'
 
     hyperlinks = []
-    pattern = r'=HYPERLINK\("([^"]+)"'
-
-    for cell in cell_range:
-        value = cell.value
-        match = re.search(pattern, value)
-        if match:
-            hyperlinks.append(match.group(1))
+    for row in formulas:
+        if row:
+            cell = row[0]
+            match = re.search(url_pattern, cell)
+            if match:
+                hyperlinks.append(match.group(1))
+            else:
+                hyperlinks.append(None)
         else:
             hyperlinks.append(None)
 
     return hyperlinks[:len(df)]
 
 # Add the hyperlink column to df
-df['Hyperlink'] = extract_hyperlinks_from_formula(worksheet)
+df['Hyperlink'] = extract_hyperlinks_from_formula_using_api(worksheet)
 
 # Step 4: Filter last 10 calendar days (including today)
 today = pd.Timestamp.now().normalize()
