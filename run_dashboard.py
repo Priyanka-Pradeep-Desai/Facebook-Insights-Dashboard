@@ -657,7 +657,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-
 # 🔗 Clickable Post Table – Preserves original look, polished
 st.markdown(
     """
