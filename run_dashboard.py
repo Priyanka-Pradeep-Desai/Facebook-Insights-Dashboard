@@ -60,11 +60,11 @@ def extract_hyperlinks_from_formula(worksheet, start_row=3):
     cell_range = worksheet.range(f"A{start_row}:A{num_rows}")
 
     hyperlinks = []
-    url_pattern = r'HYPERLINK\("([^"]+)"'
+    pattern = r'=HYPERLINK\("([^"]+)"'
 
     for cell in cell_range:
-        raw = cell.__dict__.get('_cell_data', {}).get('userEnteredValue', {}).get('formulaValue', '')
-        match = re.search(url_pattern, raw)
+        value = cell.value
+        match = re.search(pattern, value)
         if match:
             hyperlinks.append(match.group(1))
         else:
