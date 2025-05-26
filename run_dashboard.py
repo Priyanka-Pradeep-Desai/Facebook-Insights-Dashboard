@@ -221,6 +221,11 @@ except Exception as e:
 summary_df['Day_Name'] = pd.to_datetime(summary_df['Created_Date']).dt.day_name()
 summary_df['Day_Of_Week'] = pd.to_datetime(summary_df['Created_Date']).dt.weekday  # 0=Monday, 6=Sunday
 
+# 🔍 Debug: Show raw hyperlink values
+st.subheader("🔗 Raw Hyperlink Column Preview (Debug)")
+
+st.dataframe(weekly_df[['Content', 'Hyperlink']].head(20))  # Show first 20 rows
+
 # Chart 1: Daily Reaction Types Breakdown
 custom_colors = ['#1877F2', '#D81B60']
 
