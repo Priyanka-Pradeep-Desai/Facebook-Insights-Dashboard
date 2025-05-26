@@ -53,6 +53,20 @@ except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
 
+# Add a column for hyperlinks extracted from cell metadata
+def extract_hyperlinks(worksheet, content_col_idx=1):  # A = index 1 in gspread
+    hyperlinks = []
+    all_cells = worksheet.range(f"A3:A{worksheet.row_count}")
+    for cell in all_cells:
+        if cell.hyperlink:
+            hyperlinks.append(cell.hyperlink)
+        else:
+            hyperlinks.append(None)
+    return hyperlinks[:len(df)]  # Match DataFrame length
+
+# Run the extraction (Column A is index 1)
+df['Hyperlink'] = extract_hyperlinks(worksheet, content_col_idx=1)
+
 # Step 4: Filter last 10 calendar days (including today)
 today = pd.Timestamp.now().normalize()
 start_date = today - pd.Timedelta(days=9)
@@ -643,29 +657,31 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# # 🔗 Clickable Post Table – Preserves original look, polished
-# st.markdown(
-#     """
-#     <div style='text-align: center; padding-top: 40px; padding-bottom: 30px;'>
-#         <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
-#             🔗 Top Links Clicked Posts
-#         </span>
-#     </div>
-#     """,
-#     unsafe_allow_html=True
-# )
 
-# # Step 1: Select and sort by clicks
-# link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactions', 'Permanent_Link']].copy()
-# link_table = link_table.sort_values(by='Post_Clicks', ascending=False)  # <-- this line sorts it
+# 🔗 Clickable Post Table – Preserves original look, polished
+st.markdown(
+    """
+    <div style='text-align: center; padding-top: 40px; padding-bottom: 30px;'>
+        <span style='font-size: 20px; font-family: "Segoe UI", sans-serif; font-weight: 600; color: #FFFFFF;'>
+            🔗 Top Links Clicked Posts
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
-# # Step 2: Make links clickable
-# link_table['Permanent_Link'] = link_table['Permanent_Link'].apply(
-#     lambda url: f'<a href="{url}" target="_blank">View Post</a>'
-# )
+# Step 1: Select and sort by clicks
+link_table = weekly_df[['Created_Time', 'Content', 'Post_Clicks', 'Total_Reactions', 'Hyperlink']].copy()
+link_table = link_table.sort_values(by='Post_Clicks', ascending=False)  # <-- this line sorts it
 
-# # Step 3: Render the table
-# st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
+# Step 2: Make links clickable
+link_table['Hyperlink'] = link_table['Hyperlink'].apply(
+    lambda url: f'<a href="{url}" target="_blank">View Post</a>'
+)
+
+# Step 3: Render the table
+st.write(link_table.to_html(escape=False, index=False), unsafe_allow_html=True)
+
 # === Timestamp Logic ===
 def should_send_email_gsheet(days_interval=4):
     try:
