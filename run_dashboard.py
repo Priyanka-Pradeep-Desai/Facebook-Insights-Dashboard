@@ -58,13 +58,13 @@ except Exception as e:
 def extract_hyperlinks_from_formula(worksheet, start_row=3):
     num_rows = worksheet.row_count
     cell_range = worksheet.range(f"A{start_row}:A{num_rows}")
-    
+
     hyperlinks = []
     url_pattern = r'HYPERLINK\("([^"]+)"'
 
     for cell in cell_range:
-        formula = cell.input_value  # Access raw formula
-        match = re.search(url_pattern, formula)
+        raw = cell.__dict__.get('_cell_data', {}).get('userEnteredValue', {}).get('formulaValue', '')
+        match = re.search(url_pattern, raw)
         if match:
             hyperlinks.append(match.group(1))
         else:
