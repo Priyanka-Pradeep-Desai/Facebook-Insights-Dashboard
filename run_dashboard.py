@@ -34,26 +34,84 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-# Step 3: Load data into a DataFrame while dropping duplicate headers entirely
+# # Step 3: Load data into a DataFrame while dropping duplicate headers entirely
+# try:
+#     raw_headers = worksheet.row_values(2)
+#     seen = set()
+#     filtered_headers = []
+#     for col in raw_headers:
+#         if col not in seen:
+#             seen.add(col)
+#             filtered_headers.append(col)
+
+#     data = worksheet.get_all_records(head=2, expected_headers=filtered_headers)
+#     df = pd.DataFrame(data)
+
+#     df.columns = pd.Index(filtered_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
+#     df['Created_Time'] = pd.to_datetime(df['Created_Time'])
+
+# except Exception as e:
+#     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
+#     st.stop()
+
+# Step 3: Load and merge duplicate columns by averaging only numerics
 try:
     raw_headers = worksheet.row_values(2)
-    seen = set()
-    filtered_headers = []
-    for col in raw_headers:
-        if col not in seen:
-            seen.add(col)
-            filtered_headers.append(col)
+    data_rows = worksheet.get_all_values()[2:]  # Skip first two rows
 
-    data = worksheet.get_all_records(head=2, expected_headers=filtered_headers)
-    df = pd.DataFrame(data)
+    cleaned_headers = pd.Index(raw_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
+    df_raw = pd.DataFrame(data_rows, columns=cleaned_headers)
 
-    df.columns = pd.Index(filtered_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
-    df['Created_Time'] = pd.to_datetime(df['Created_Time'])
+    duplicates_to_consolidate = ['Post_Clicks', 'Total_Like_Reactions', 'Total_Love_Reactions']
+
+    # Fix duplicated columns properly
+    final_columns = []
+    consolidated_data = {}
+
+    for col in cleaned_headers:
+        base = col
+        count = cleaned_headers.tolist().count(col)
+        if col in duplicates_to_consolidate and col not in consolidated_data:
+            # Get all matching columns (e.g. Post_Clicks, Post_Clicks_1)
+            matching_cols = [c for c in cleaned_headers if c == col or c.startswith(f"{col}_")]
+            subset = df_raw[matching_cols].apply(pd.to_numeric, errors='coerce')
+
+            abs_mean = subset.abs().mean(axis=1)
+            closest = []
+
+            for i, row in subset.iterrows():
+                val = row.dropna()
+                if val.empty:
+                    closest.append(np.nan)
+                else:
+                    closest_idx = (val.abs() - abs_mean[i]).abs().idxmin()
+                    closest.append(row[closest_idx])
+
+            consolidated_data[col] = pd.Series(closest)
+            final_columns.append(col)
+        elif col not in consolidated_data:
+            consolidated_data[col] = df_raw[col]
+            final_columns.append(col)
+
+    df_cleaned = pd.DataFrame(consolidated_data, columns=final_columns)
+
+    # Rename Created Time correctly
+    df_cleaned.columns = df_cleaned.columns.str.strip().str.replace(' ', '_').str.replace('.', '_')
+
+    # Ensure Created_Time is valid datetime
+    df_cleaned['Created_Time'] = pd.to_datetime(df_cleaned['Created_Time'], errors='coerce')
+    df_cleaned = df_cleaned.dropna(subset=['Created_Time'])
+
+    # Ensure all numerical columns are numeric
+    for col in ['Post_Clicks', 'Total_Like_Reactions', 'Total_Love_Reactions', 'Total_Reach', 'Total_Impressions', 'Total_Reactions']:
+        if col in df_cleaned.columns:
+            df_cleaned[col] = pd.to_numeric(df_cleaned[col], errors='coerce')
+
+    df = df_cleaned
 
 except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
-
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
 def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
