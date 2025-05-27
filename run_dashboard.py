@@ -34,25 +34,55 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-# Step 3: Load data into a DataFrame while dropping duplicate headers entirely
-try:
-    raw_headers = worksheet.row_values(2)
-    seen = set()
-    filtered_headers = []
-    for col in raw_headers:
-        if col not in seen:
-            seen.add(col)
-            filtered_headers.append(col)
+# # Step 3: Load data into a DataFrame while dropping duplicate headers entirely
+# try:
+#     raw_headers = worksheet.row_values(2)
+#     seen = set()
+#     filtered_headers = []
+#     for col in raw_headers:
+#         if col not in seen:
+#             seen.add(col)
+#             filtered_headers.append(col)
 
-    data = worksheet.get_all_records(head=2, expected_headers=filtered_headers)
-    df = pd.DataFrame(data)
+#     data = worksheet.get_all_records(head=2, expected_headers=filtered_headers)
+#     df = pd.DataFrame(data)
 
-    df.columns = pd.Index(filtered_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
-    df['Created_Time'] = pd.to_datetime(df['Created_Time'])
+#     df.columns = pd.Index(filtered_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
+#     df['Created_Time'] = pd.to_datetime(df['Created_Time'])
 
-except Exception as e:
-    st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
-    st.stop()
+# except Exception as e:
+#     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
+#     st.stop()
+
+raw_headers = worksheet.row_values(2)
+data = worksheet.get_all_values()[2:]  # Get all values starting from row 3 (after headers)
+
+# Create DataFrame directly
+df = pd.DataFrame(data, columns=raw_headers)
+
+# Remove completely empty rows
+df.dropna(how='all', inplace=True)
+
+# Convert numeric columns to numeric (ignore errors temporarily)
+df = df.apply(pd.to_numeric, errors='ignore')
+
+# Strip and standardize column names
+df.columns = df.columns.str.strip().str.replace(' ', '_').str.replace('.', '_')
+
+# Identify duplicate column names
+col_counts = defaultdict(list)
+for idx, col in enumerate(df.columns):
+    col_counts[col].append(idx)
+
+# Average duplicate columns and merge under same name
+for col, indices in col_counts.items():
+    if len(indices) > 1:
+        avg_series = pd.concat([df.iloc[:, i].apply(pd.to_numeric, errors='coerce') for i in indices], axis=1).mean(axis=1)
+        df[col] = avg_series
+        df.drop(df.columns[indices[1:]], axis=1, inplace=True)
+
+# Ensure Created_Time is in datetime format
+df['Created_Time'] = pd.to_datetime(df['Created_Time'], errors='coerce')
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
 def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
