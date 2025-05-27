@@ -35,66 +35,55 @@ except Exception as e:
     st.stop()
 
 # Step 3: Load and merge duplicate columns by averaging only numerics
-def consolidate_duplicate_columns(data_rows, header_row):
-    cleaned_headers = pd.Index(header_row).str.strip().str.replace(' ', '_').str.replace('.', '_')
+try:
+    raw_headers = worksheet.row_values(2)
+    data_rows = worksheet.get_all_values()[2:]  # Skip first two header rows
+
+    cleaned_headers = pd.Index(raw_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
     df_raw = pd.DataFrame(data_rows, columns=cleaned_headers)
 
-    column_map = defaultdict(list)
-    for col in df_raw.columns:
-        base = re.sub(r'_\d+$', '', col)
-        column_map[base].append(col)
+    # Convert numeric columns only where duplicates are expected
+    duplicates_to_consolidate = [
+        'Post_Clicks',
+        'Total_Like_Reactions',
+        'Total_Love_Reactions'
+    ]
 
-    df_final = pd.DataFrame()
+    df_cleaned = df_raw.copy()
 
-    for base, cols in column_map.items():
-        col_df = df_raw[cols]
-        numeric_df = col_df.apply(pd.to_numeric, errors='coerce')
+    for col in duplicates_to_consolidate:
+        matching_cols = [c for c in df_raw.columns if c == col or c.startswith(f"{col}_")]
 
-        if len(cols) == 1:
-            df_final[base] = numeric_df[cols[0]]
-        elif numeric_df.notna().sum().sum() > 0:
-            abs_mean = numeric_df.abs().mean(axis=1)
+        if len(matching_cols) == 1:
+            df_cleaned[col] = pd.to_numeric(df_raw[matching_cols[0]], errors='coerce')
+        else:
+            subset = df_raw[matching_cols].apply(pd.to_numeric, errors='coerce')
+            abs_mean = subset.abs().mean(axis=1)
 
-            # Use corrected loop to compare to abs mean
             closest_values = []
-            for i in range(len(numeric_df)):
-                row_vals = numeric_df.iloc[i]
+            for i in range(len(subset)):
+                row_vals = subset.iloc[i]
                 valid_vals = row_vals.dropna().abs()
                 if valid_vals.empty:
                     closest_values.append(np.nan)
                 else:
                     closest_idx = (valid_vals - abs_mean.iloc[i]).abs().idxmin()
                     closest_values.append(row_vals[closest_idx])
-            df_final[base] = closest_values
-        else:
-            df_final[base] = col_df.bfill(axis=1).iloc[:, 0]
+            df_cleaned[col] = closest_values
 
-    return df_final
+    # Make sure Created_Time is parsed
+    df_cleaned['Created_Time'] = pd.to_datetime(df_cleaned['Created_Time'], errors='coerce')
 
+    # Drop rows where Created_Time couldn't be parsed
+    df_cleaned = df_cleaned.dropna(subset=['Created_Time'])
 
-try:
-    raw_headers = worksheet.row_values(2)
-    raw_data = worksheet.get_all_values()[2:]  # skip header + type row
-    df = consolidate_duplicate_columns(raw_data, raw_headers)
-
-    if 'Created_Time' not in df.columns:
-        st.error("❌ 'Created_Time' column missing after consolidation.")
-        st.stop()
-
-    df['Created_Time'] = pd.to_datetime(df['Created_Time'], errors='coerce')
-
-    # Force numeric types on key metrics
-    num_cols = [
-        'Post_Clicks', 'Total_Impressions', 'Total_Like_Reactions',
-        'Total_Love_Reactions', 'Total_Reach', 'Total_Reactions'
-    ]
-    for col in num_cols:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce')
+    # Final cleaned dataframe
+    df = df_cleaned
 
 except Exception as e:
-    st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
+    st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
+
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
 def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
