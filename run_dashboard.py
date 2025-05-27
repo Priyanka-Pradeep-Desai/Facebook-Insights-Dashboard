@@ -34,50 +34,7 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-try:
-    raw_headers = worksheet.row_values(2)
-    data_rows = worksheet.get_all_values()[2:]  # Skip first two header rows
-
-    # Normalize headers
-    cleaned_headers = pd.Index(raw_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
-    df_raw = pd.DataFrame(data_rows, columns=cleaned_headers)
-
-    # Convert Created_Time first
-    df_raw['Created_Time'] = pd.to_datetime(df_raw['Created_Time'], errors='coerce')
-
-    # Only process if Created_Time is valid
-    df_raw = df_raw.dropna(subset=['Created_Time'])
-
-    # Consolidate duplicate columns
-    def consolidate_columns(df, base_name):
-        matching_cols = [col for col in df.columns if col.startswith(base_name)]
-        subset = df[matching_cols].apply(pd.to_numeric, errors='coerce')
-        abs_mean = subset.abs().mean(axis=1)
-        closest_values = []
-        for i in range(len(subset)):
-            row = subset.iloc[i]
-            valid_vals = row.dropna().abs()
-            if valid_vals.empty:
-                closest_values.append(np.nan)
-            else:
-                closest_idx = (valid_vals - abs_mean.iloc[i]).abs().idxmin()
-                closest_values.append(row[closest_idx])
-        return closest_values
-
-    for base_col in ['Post_Clicks', 'Total_Like_Reactions', 'Total_Love_Reactions']:
-        df_raw[base_col] = consolidate_columns(df_raw, base_col)
-
-    # Drop all extra suffix columns
-    to_drop = [col for col in df_raw.columns if any(col.startswith(f"{base}_") for base in ['Post_Clicks', 'Total_Like_Reactions', 'Total_Love_Reactions'])]
-    df_raw.drop(columns=to_drop, inplace=True)
-
-    # Final cleaned DataFrame
-    df = df_raw
-
-except Exception as e:
-    st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
-    st.stop()
-
+int(weekly_df['Post_Clicks'].sum())
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
 def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
