@@ -53,22 +53,20 @@ def consolidate_duplicate_columns(data_rows, header_row):
         if len(cols) == 1:
             df_final[base] = numeric_df[cols[0]]
         elif numeric_df.notna().sum().sum() > 0:
-            # Row-wise mean of absolute values
             abs_mean = numeric_df.abs().mean(axis=1)
 
-            # Find value closest to that mean in each row
-            def closest_to_mean(row, mean_val):
-                row_vals = row.dropna().abs()
-                if row_vals.empty:
-                    return np.nan
-                closest = row_vals.iloc[(row_vals - mean_val).abs().argmin()]
-                return closest
-
-            df_final[base] = [
-                closest_to_mean(row, avg) for _, row, avg in zip(numeric_df.itertuples(index=False), numeric_df.iterrows(), abs_mean)
-            ]
+            # Use corrected loop to compare to abs mean
+            closest_values = []
+            for i in range(len(numeric_df)):
+                row_vals = numeric_df.iloc[i]
+                valid_vals = row_vals.dropna().abs()
+                if valid_vals.empty:
+                    closest_values.append(np.nan)
+                else:
+                    closest_idx = (valid_vals - abs_mean.iloc[i]).abs().idxmin()
+                    closest_values.append(row_vals[closest_idx])
+            df_final[base] = closest_values
         else:
-            # Use first non-null text
             df_final[base] = col_df.bfill(axis=1).iloc[:, 0]
 
     return df_final
