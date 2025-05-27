@@ -84,7 +84,6 @@ except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
 
-
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
 def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
     # Use built-in gspread method to get raw formulas
