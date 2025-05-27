@@ -83,11 +83,11 @@ for col_name, idx_list in col_map.items():
         df[col_name] = df_raw.iloc[:, idx_list[0]]
     else:
         numeric_cols = [pd.to_numeric(df_raw.iloc[:, idx], errors='coerce') for idx in idx_list]
-        df[col_name] = pd.concat(numeric_cols, axis=1).mean(axis=1)
+        mean_series = pd.concat(numeric_cols, axis=1).mean(axis=1)
+        df[col_name] = np.ceil(mean_series)
 
 # Convert 'Created_Time' safely
 df['Created_Time'] = pd.to_datetime(df['Created_Time'], errors='coerce')
-
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
 def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
