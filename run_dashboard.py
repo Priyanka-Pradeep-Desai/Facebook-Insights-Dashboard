@@ -33,46 +33,45 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-# Step 3: Load data and consolidate duplicate columns by averaging their values
+# Step 3: Load data and consolidate duplicate columns properly
 def consolidate_duplicate_columns(raw_data, raw_headers):
-    from collections import Counter, defaultdict
-    import re
+    from collections import defaultdict
+    import pandas as pd
+    import numpy as np
 
-    # Step 1: Make headers unique (e.g., 'Clicks', 'Clicks_2', ...)
-    header_counts = Counter()
-    unique_headers = []
-    for col in raw_headers:
-        header_counts[col] += 1
-        if header_counts[col] == 1:
-            unique_headers.append(col)
-        else:
-            unique_headers.append(f"{col}_{header_counts[col]}")
+    # Normalize header names
+    clean_headers = pd.Index(raw_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
 
-    # Step 2: Create initial DataFrame with all duplicate columns
-    df_raw = pd.DataFrame(raw_data, columns=pd.Index(unique_headers).str.strip().str.replace(' ', '_').str.replace('.', '_'))
+    # Load raw data as-is
+    df_raw = pd.DataFrame(raw_data, columns=clean_headers)
 
-    # Step 3: Average numeric duplicates
-    base_col_map = defaultdict(list)
-    for col in df_raw.columns:
-        base = re.sub(r'_\d+$', '', col)
-        base_col_map[base].append(col)
+    # Identify actual duplicates
+    duplicates = clean_headers[clean_headers.duplicated()].unique()
+    unique_cols = clean_headers.drop_duplicates()
 
     df_clean = pd.DataFrame()
-    for base, cols in base_col_map.items():
-        try:
-            numeric_df = df_raw[cols].apply(pd.to_numeric, errors='coerce')
-            df_clean[base] = numeric_df.abs().mean(axis=1)
-        except:
-            df_clean[base] = df_raw[cols[0]]  # fallback for non-numeric
+
+    for col in unique_cols:
+        same_cols = [c for c in clean_headers if c == col or (c.startswith(col + '_') and col in duplicates)]
+        if len(same_cols) == 1:
+            df_clean[col] = df_raw[same_cols[0]]
+        else:
+            # Try numeric mean of absolutes
+            numeric_part = df_raw[same_cols].apply(pd.to_numeric, errors='coerce')
+            if numeric_part.notna().sum().sum() > 0:
+                df_clean[col] = numeric_part.abs().mean(axis=1)
+            else:
+                df_clean[col] = df_raw[same_cols].bfill(axis=1).iloc[:, 0]
 
     return df_clean
 
 try:
     raw_headers = worksheet.row_values(2)
-    raw_data = worksheet.get_all_values()[2:]  # Skip first 2 rows (header + types)
+    raw_data = worksheet.get_all_values()[2:]
 
     df = consolidate_duplicate_columns(raw_data, raw_headers)
 
+    # Confirm expected column exists
     if 'Created_Time' in df.columns:
         df['Created_Time'] = pd.to_datetime(df['Created_Time'], errors='coerce')
     else:
