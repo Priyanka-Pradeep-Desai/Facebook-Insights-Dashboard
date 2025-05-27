@@ -33,53 +33,60 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-# Step 3: Load data and consolidate duplicate columns properly
-def consolidate_duplicate_columns(raw_data, raw_headers):
-    from collections import defaultdict
+# Step 3: Load and merge duplicate columns by averaging only numerics
+def consolidate_duplicate_columns(data_rows, header_row):
     import pandas as pd
     import numpy as np
+    from collections import defaultdict
+    import re
 
-    # Normalize header names
-    clean_headers = pd.Index(raw_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
+    # Clean header names
+    cleaned_headers = pd.Index(header_row).str.strip().str.replace(' ', '_').str.replace('.', '_')
 
-    # Load raw data as-is
-    df_raw = pd.DataFrame(raw_data, columns=clean_headers)
+    # Build DataFrame with possibly duplicate columns
+    df_raw = pd.DataFrame(data_rows, columns=cleaned_headers)
 
-    # Identify actual duplicates
-    duplicates = clean_headers[clean_headers.duplicated()].unique()
-    unique_cols = clean_headers.drop_duplicates()
+    # Group columns by their base name
+    column_map = defaultdict(list)
+    for col in df_raw.columns:
+        base = re.sub(r'_\d+$', '', col)
+        column_map[base].append(col)
 
-    df_clean = pd.DataFrame()
-
-    for col in unique_cols:
-        same_cols = [c for c in clean_headers if c == col or (c.startswith(col + '_') and col in duplicates)]
-        if len(same_cols) == 1:
-            df_clean[col] = df_raw[same_cols[0]]
+    df_final = pd.DataFrame()
+    for base, cols in column_map.items():
+        if len(cols) == 1:
+            df_final[base] = df_raw[cols[0]]
         else:
-            # Try numeric mean of absolutes
-            numeric_part = df_raw[same_cols].apply(pd.to_numeric, errors='coerce')
-            if numeric_part.notna().sum().sum() > 0:
-                df_clean[col] = numeric_part.abs().mean(axis=1)
-            else:
-                df_clean[col] = df_raw[same_cols].bfill(axis=1).iloc[:, 0]
+            try:
+                numeric = df_raw[cols].apply(pd.to_numeric, errors='coerce')
+                df_final[base] = numeric.abs().mean(axis=1)
+            except:
+                df_final[base] = df_raw[cols].bfill(axis=1).iloc[:, 0]
 
-    return df_clean
+    return df_final
 
 try:
     raw_headers = worksheet.row_values(2)
-    raw_data = worksheet.get_all_values()[2:]
-
+    raw_data = worksheet.get_all_values()[2:]  # skip header + type row
     df = consolidate_duplicate_columns(raw_data, raw_headers)
 
-    # Confirm expected column exists
-    if 'Created_Time' in df.columns:
-        df['Created_Time'] = pd.to_datetime(df['Created_Time'], errors='coerce')
-    else:
+    if 'Created_Time' not in df.columns:
         st.error("❌ 'Created_Time' column missing after consolidation.")
         st.stop()
 
+    df['Created_Time'] = pd.to_datetime(df['Created_Time'], errors='coerce')
+
+    # Force numeric types on key metrics
+    num_cols = [
+        'Post_Clicks', 'Total_Impressions', 'Total_Like_Reactions',
+        'Total_Love_Reactions', 'Total_Reach', 'Total_Reactions'
+    ]
+    for col in num_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+
 except Exception as e:
-    st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
+    st.error(f"❌ Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
