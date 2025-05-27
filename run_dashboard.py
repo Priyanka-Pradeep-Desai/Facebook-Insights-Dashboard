@@ -34,9 +34,28 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-st.write("Post_Clicks dtype:", weekly_df['Post_Clicks'].dtype)
-st.write("Post_Clicks sample values:", weekly_df['Post_Clicks'].head())
-st.write("Any NaNs in Post_Clicks?", weekly_df['Post_Clicks'].isna().any())
+# Fetch headers from the second row
+raw_headers = worksheet.row_values(2)
+
+# Fetch data starting from row 3
+data_rows = worksheet.get_all_values()[2:]
+
+# Display raw headers
+st.write("🔍 Raw headers from row 2:", raw_headers)
+
+# Count duplicates
+from collections import Counter
+header_counts = Counter(raw_headers)
+duplicate_headers = {col: count for col, count in header_counts.items() if count > 1}
+st.write("🔁 Duplicate column names:", duplicate_headers)
+
+# If you want to show side-by-side duplicate values for inspection
+df_raw = pd.DataFrame(data_rows, columns=raw_headers)
+for col, count in duplicate_headers.items():
+    matching_cols = [c for c in df_raw.columns if c == col]
+    st.write(f"📊 Values in duplicated column '{col}':")
+    st.dataframe(df_raw[matching_cols].head(10))
+
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
 def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
