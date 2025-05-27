@@ -34,28 +34,49 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-# Fetch headers from the second row
-raw_headers = worksheet.row_values(2)
+try:
+    raw_headers = worksheet.row_values(2)
+    data_rows = worksheet.get_all_values()[2:]  # Skip first two header rows
 
-# Fetch data starting from row 3
-data_rows = worksheet.get_all_values()[2:]
+    # Temporarily rename duplicate headers by appending an index
+    seen = defaultdict(int)
+    unique_headers = []
+    for h in raw_headers:
+        count = seen[h]
+        unique_headers.append(f"{h}_{count}" if count > 0 else h)
+        seen[h] += 1
 
-# Display raw headers
-st.write("🔍 Raw headers from row 2:", raw_headers)
+    df_raw = pd.DataFrame(data_rows, columns=unique_headers)
 
-# Count duplicates
-from collections import Counter
-header_counts = Counter(raw_headers)
-duplicate_headers = {col: count for col, count in header_counts.items() if count > 1}
-st.write("🔁 Duplicate column names:", duplicate_headers)
+    # Define target columns
+    to_fix = {
+        "Post Clicks": [c for c in df_raw.columns if c.startswith("Post Clicks")],
+        "Total Like Reactions": [c for c in df_raw.columns if c.startswith("Total Like Reactions")],
+        "Total Love Reactions": [c for c in df_raw.columns if c.startswith("Total Love Reactions")]
+    }
 
-# If you want to show side-by-side duplicate values for inspection
-df_raw = pd.DataFrame(data_rows, columns=raw_headers)
-for col, count in duplicate_headers.items():
-    matching_cols = [c for c in df_raw.columns if c == col]
-    st.write(f"📊 Values in duplicated column '{col}':")
-    st.dataframe(df_raw[matching_cols].head(10))
+    df_cleaned = pd.DataFrame()
 
+    # Copy untouched columns
+    untouched_cols = [c for c in df_raw.columns if all(not c.startswith(prefix) for prefix in to_fix)]
+    df_cleaned[untouched_cols] = df_raw[untouched_cols]
+
+    # Consolidate duplicates using mean and closest absolute value
+    for final_col, col_group in to_fix.items():
+        subset = df_raw[col_group].apply(pd.to_numeric, errors='coerce')
+        abs_mean = subset.abs().mean(axis=1)
+        closest = subset.apply(lambda row: row.loc[(row.abs() - abs_mean[row.name]).abs().idxmin()], axis=1)
+        df_cleaned[final_col] = closest
+
+    # Final cleanup
+    df_cleaned['Created Time'] = pd.to_datetime(df_cleaned['Created Time'], errors='coerce')
+    df_cleaned = df_cleaned.dropna(subset=['Created Time'])
+
+    df = df_cleaned.copy()
+
+except Exception as e:
+    st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
+    st.stop()
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
 def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
