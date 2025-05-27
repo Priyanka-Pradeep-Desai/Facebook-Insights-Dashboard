@@ -34,52 +34,26 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
+# Step 3: Load data into a DataFrame while dropping duplicate headers entirely
 try:
     raw_headers = worksheet.row_values(2)
-    data_rows = worksheet.get_all_values()[2:]  # Skip first two header rows
+    seen = set()
+    filtered_headers = []
+    for col in raw_headers:
+        if col not in seen:
+            seen.add(col)
+            filtered_headers.append(col)
 
-    # Temporarily rename duplicate headers by appending an index
-    seen = defaultdict(int)
-    unique_headers = []
-    for h in raw_headers:
-        count = seen[h]
-        unique_headers.append(f"{h}_{count}" if count > 0 else h)
-        seen[h] += 1
+    data = worksheet.get_all_records(head=2, expected_headers=filtered_headers)
+    df = pd.DataFrame(data)
 
-    df_raw = pd.DataFrame(data_rows, columns=unique_headers)
-
-    # Define target columns
-    to_fix = {
-        "Post Clicks": [c for c in df_raw.columns if c.startswith("Post Clicks")],
-        "Total Like Reactions": [c for c in df_raw.columns if c.startswith("Total Like Reactions")],
-        "Total Love Reactions": [c for c in df_raw.columns if c.startswith("Total Love Reactions")]
-    }
-
-    df_cleaned = pd.DataFrame()
-
-    # Copy untouched columns
-    untouched_cols = [c for c in df_raw.columns if all(not c.startswith(prefix) for prefix in to_fix)]
-    df_cleaned[untouched_cols] = df_raw[untouched_cols]
-
-    # Consolidate duplicates using mean and closest absolute value
-    for final_col, col_group in to_fix.items():
-        subset = df_raw[col_group].apply(pd.to_numeric, errors='coerce')
-        abs_mean = subset.abs().mean(axis=1)
-        closest = subset.apply(lambda row: row.loc[(row.abs() - abs_mean[row.name]).abs().idxmin()], axis=1)
-        df_cleaned[final_col] = closest
-
-    df_cleaned.columns = df_cleaned.columns.str.strip().str.replace(' ', '_').str.replace('.', '_')
-    
-    # Make sure Created_Time exists
-    df_cleaned['Created_Time'] = pd.to_datetime(df_cleaned['Created_Time'], errors='coerce')
-    df_cleaned = df_cleaned.dropna(subset=['Created_Time'])
-    
-    # Final assignment
-    df = df_cleaned.copy()
+    df.columns = pd.Index(filtered_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
+    df['Created_Time'] = pd.to_datetime(df['Created_Time'])
 
 except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
     st.stop()
+
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
 def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
