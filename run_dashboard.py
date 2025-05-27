@@ -68,10 +68,13 @@ try:
         closest = subset.apply(lambda row: row.loc[(row.abs() - abs_mean[row.name]).abs().idxmin()], axis=1)
         df_cleaned[final_col] = closest
 
-    # Final cleanup
-    df_cleaned['Created Time'] = pd.to_datetime(df_cleaned['Created Time'], errors='coerce')
-    df_cleaned = df_cleaned.dropna(subset=['Created Time'])
-
+    df_cleaned.columns = df_cleaned.columns.str.strip().str.replace(' ', '_').str.replace('.', '_')
+    
+    # Make sure Created_Time exists
+    df_cleaned['Created_Time'] = pd.to_datetime(df_cleaned['Created_Time'], errors='coerce')
+    df_cleaned = df_cleaned.dropna(subset=['Created_Time'])
+    
+    # Final assignment
     df = df_cleaned.copy()
 
 except Exception as e:
