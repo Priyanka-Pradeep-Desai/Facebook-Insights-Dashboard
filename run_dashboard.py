@@ -33,25 +33,49 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-# Step 3: Load data into a DataFrame while dropping duplicate headers entirely
-try:
-    raw_headers = worksheet.row_values(2)
-    seen = set()
-    filtered_headers = []
+def consolidate_duplicate_columns(raw_data, raw_headers):
+    from collections import Counter, defaultdict
+    import re
+
+    header_counts = Counter()
+    unique_headers = []
+
     for col in raw_headers:
-        if col not in seen:
-            seen.add(col)
-            filtered_headers.append(col)
+        header_counts[col] += 1
+        if header_counts[col] == 1:
+            unique_headers.append(col)
+        else:
+            unique_headers.append(f"{col}_{header_counts[col]}")
 
-    data = worksheet.get_all_records(head=2, expected_headers=filtered_headers)
-    df = pd.DataFrame(data)
+    df_raw = pd.DataFrame(raw_data, columns=pd.Index(unique_headers).str.strip().str.replace(' ', '_').str.replace('.', '_'))
 
-    df.columns = pd.Index(filtered_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
-    df['Created_Time'] = pd.to_datetime(df['Created_Time'])
+    base_col_map = defaultdict(list)
+    for col in df_raw.columns:
+        base = re.sub(r'_\d+$', '', col)
+        base_col_map[base].append(col)
 
-except Exception as e:
-    st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
+    df_consolidated = pd.DataFrame()
+
+    for base, cols in base_col_map.items():
+        col_sample = df_raw[cols[0]]
+        if col_sample.replace('', np.nan).dropna().apply(lambda x: str(x).replace('.', '', 1).replace('-', '', 1).isdigit()).all():
+            # numeric-like → average abs
+            numeric_df = df_raw[cols].apply(pd.to_numeric, errors='coerce')
+            df_consolidated[base] = numeric_df.abs().mean(axis=1)
+        else:
+            # string/date-like → just take first non-null value
+            df_consolidated[base] = df_raw[cols].bfill(axis=1).iloc[:, 0]
+
+    return df_consolidated
+
+df = consolidate_duplicate_columns(raw_data, raw_headers)
+
+if 'Created_Time' in df.columns:
+    df['Created_Time'] = pd.to_datetime(df['Created_Time'], errors='coerce')
+else:
+    st.error("❌ 'Created_Time' column missing after consolidation.")
     st.stop()
+
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
 def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
