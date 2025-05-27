@@ -90,13 +90,20 @@ try:
         row_means = subset.mean(axis=1).abs()
         closest = []
 
-        for idx, row in subset.iterrows():
-            diffs = (row.abs() - row_means[idx]).abs()
-            if diffs.dropna().empty:
-                closest.append(np.nan)
+    for idx, row in subset.iterrows():
+        valid_vals = row.dropna().abs()
+        if valid_vals.empty:
+            closest.append(np.nan)
+        else:
+            mean_val = row_means[idx]
+            greater_eq_vals = valid_vals[valid_vals >= mean_val]
+            if not greater_eq_vals.empty:
+                selected_idx = greater_eq_vals.idxmin()
             else:
-                closest_val = row.loc[diffs.idxmin()]
-                closest.append(closest_val)
+                selected_idx = valid_vals.idxmax()  # fallback to max if all < mean
+            closest_val = row.loc[selected_idx]
+            closest.append(closest_val)
+
 
         df_cleaned[base] = closest
 
