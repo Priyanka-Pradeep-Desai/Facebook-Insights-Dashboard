@@ -54,55 +54,58 @@ except Exception as e:
 #     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
 #     st.stop()
 
-# Step 3: Load and merge duplicate columns by averaging only numerics
 try:
     raw_headers = worksheet.row_values(2)
-    data_rows = worksheet.get_all_values()[2:]  # Skip first two rows
+    data_rows = worksheet.get_all_values()[2:]
 
-    cleaned_headers = pd.Index(raw_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
+    # Make headers safe for DataFrame
+    cleaned_headers = []
+    counts = defaultdict(int)
+    for h in raw_headers:
+        h_clean = h.strip().replace(" ", "_").replace(".", "_")
+        counts[h_clean] += 1
+        if counts[h_clean] > 1:
+            h_clean = f"{h_clean}_{counts[h_clean]}"
+        cleaned_headers.append(h_clean)
+
     df_raw = pd.DataFrame(data_rows, columns=cleaned_headers)
 
+    # List of duplicated base column names you want to consolidate
     duplicates_to_consolidate = ['Post_Clicks', 'Total_Like_Reactions', 'Total_Love_Reactions']
 
-    # Fix duplicated columns properly
-    final_columns = []
-    consolidated_data = {}
+    df_cleaned = pd.DataFrame()
 
-    for col in cleaned_headers:
-        base = col
-        count = cleaned_headers.tolist().count(col)
-        if col in duplicates_to_consolidate and col not in consolidated_data:
-            # Get all matching columns (e.g. Post_Clicks, Post_Clicks_1)
-            matching_cols = [c for c in cleaned_headers if c == col or c.startswith(f"{col}_")]
-            subset = df_raw[matching_cols].apply(pd.to_numeric, errors='coerce')
+    for col in df_raw.columns:
+        base = col.split("_")[0]
+        if base in duplicates_to_consolidate:
+            continue  # Skip now; we will handle all of them at once
 
-            abs_mean = subset.abs().mean(axis=1)
-            closest = []
+        df_cleaned[col] = df_raw[col]
 
-            for i, row in subset.iterrows():
-                val = row.dropna()
-                if val.empty:
-                    closest.append(np.nan)
-                else:
-                    closest_idx = (val.abs() - abs_mean[i]).abs().idxmin()
-                    closest.append(row[closest_idx])
+    # Consolidate duplicates properly
+    for base in duplicates_to_consolidate:
+        matching_cols = [c for c in df_raw.columns if c.startswith(base)]
+        subset = df_raw[matching_cols].apply(pd.to_numeric, errors='coerce')
 
-            consolidated_data[col] = pd.Series(closest)
-            final_columns.append(col)
-        elif col not in consolidated_data:
-            consolidated_data[col] = df_raw[col]
-            final_columns.append(col)
+        row_means = subset.mean(axis=1).abs()
+        closest = []
 
-    df_cleaned = pd.DataFrame(consolidated_data, columns=final_columns)
+        for idx, row in subset.iterrows():
+            diffs = (row.abs() - row_means[idx]).abs()
+            if diffs.dropna().empty:
+                closest.append(np.nan)
+            else:
+                closest_val = row.loc[diffs.idxmin()]
+                closest.append(closest_val)
 
-    # Rename Created Time correctly
-    df_cleaned.columns = df_cleaned.columns.str.strip().str.replace(' ', '_').str.replace('.', '_')
+        df_cleaned[base] = closest
 
-    # Ensure Created_Time is valid datetime
+    # Rename Created_Time and convert it
+    df_cleaned.columns = df_cleaned.columns.str.strip().str.replace(" ", "_").str.replace(".", "_")
     df_cleaned['Created_Time'] = pd.to_datetime(df_cleaned['Created_Time'], errors='coerce')
     df_cleaned = df_cleaned.dropna(subset=['Created_Time'])
 
-    # Ensure all numerical columns are numeric
+    # Make all numeric columns numeric
     for col in ['Post_Clicks', 'Total_Like_Reactions', 'Total_Love_Reactions', 'Total_Reach', 'Total_Impressions', 'Total_Reactions']:
         if col in df_cleaned.columns:
             df_cleaned[col] = pd.to_numeric(df_cleaned[col], errors='coerce')
