@@ -14,6 +14,7 @@ from pathlib import Path
 import numpy as np
 from plotly.subplots import make_subplots
 import re
+from collections import defaultdict
 
 # Step 1: Authenticate with Google Sheets API
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -35,35 +36,43 @@ except Exception as e:
 
 # Step 3: Load and merge duplicate columns by averaging only numerics
 def consolidate_duplicate_columns(data_rows, header_row):
-    import pandas as pd
-    import numpy as np
-    from collections import defaultdict
-    import re
-
-    # Clean header names
     cleaned_headers = pd.Index(header_row).str.strip().str.replace(' ', '_').str.replace('.', '_')
-
-    # Build DataFrame with possibly duplicate columns
     df_raw = pd.DataFrame(data_rows, columns=cleaned_headers)
 
-    # Group columns by their base name
     column_map = defaultdict(list)
     for col in df_raw.columns:
         base = re.sub(r'_\d+$', '', col)
         column_map[base].append(col)
 
     df_final = pd.DataFrame()
+
     for base, cols in column_map.items():
+        col_df = df_raw[cols]
+        numeric_df = col_df.apply(pd.to_numeric, errors='coerce')
+
         if len(cols) == 1:
-            df_final[base] = df_raw[cols[0]]
+            df_final[base] = numeric_df[cols[0]]
+        elif numeric_df.notna().sum().sum() > 0:
+            # Row-wise mean of absolute values
+            abs_mean = numeric_df.abs().mean(axis=1)
+
+            # Find value closest to that mean in each row
+            def closest_to_mean(row, mean_val):
+                row_vals = row.dropna().abs()
+                if row_vals.empty:
+                    return np.nan
+                closest = row_vals.iloc[(row_vals - mean_val).abs().argmin()]
+                return closest
+
+            df_final[base] = [
+                closest_to_mean(row, avg) for _, row, avg in zip(numeric_df.itertuples(index=False), numeric_df.iterrows(), abs_mean)
+            ]
         else:
-            try:
-                numeric = df_raw[cols].apply(pd.to_numeric, errors='coerce')
-                df_final[base] = numeric.abs().mean(axis=1)
-            except:
-                df_final[base] = df_raw[cols].bfill(axis=1).iloc[:, 0]
+            # Use first non-null text
+            df_final[base] = col_df.bfill(axis=1).iloc[:, 0]
 
     return df_final
+
 
 try:
     raw_headers = worksheet.row_values(2)
