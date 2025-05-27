@@ -34,7 +34,9 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-int(weekly_df['Post_Clicks'].sum())
+st.write("Post_Clicks dtype:", weekly_df['Post_Clicks'].dtype)
+st.write("Post_Clicks sample values:", weekly_df['Post_Clicks'].head())
+st.write("Any NaNs in Post_Clicks?", weekly_df['Post_Clicks'].isna().any())
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
 def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
