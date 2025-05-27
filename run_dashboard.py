@@ -34,90 +34,21 @@ except Exception as e:
     st.error(f"\u274c Failed to open Google Sheet or tab.\n\nError:\n{e}")
     st.stop()
 
-# # Step 3: Load data into a DataFrame while dropping duplicate headers entirely
-# try:
-#     raw_headers = worksheet.row_values(2)
-#     seen = set()
-#     filtered_headers = []
-#     for col in raw_headers:
-#         if col not in seen:
-#             seen.add(col)
-#             filtered_headers.append(col)
-
-#     data = worksheet.get_all_records(head=2, expected_headers=filtered_headers)
-#     df = pd.DataFrame(data)
-
-#     df.columns = pd.Index(filtered_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
-#     df['Created_Time'] = pd.to_datetime(df['Created_Time'])
-
-# except Exception as e:
-#     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
-#     st.stop()
-
+# Step 3: Load data into a DataFrame while dropping duplicate headers entirely
 try:
     raw_headers = worksheet.row_values(2)
-    data_rows = worksheet.get_all_values()[2:]
+    seen = set()
+    filtered_headers = []
+    for col in raw_headers:
+        if col not in seen:
+            seen.add(col)
+            filtered_headers.append(col)
 
-    # Make headers safe for DataFrame
-    cleaned_headers = []
-    counts = defaultdict(int)
-    for h in raw_headers:
-        h_clean = h.strip().replace(" ", "_").replace(".", "_")
-        counts[h_clean] += 1
-        if counts[h_clean] > 1:
-            h_clean = f"{h_clean}_{counts[h_clean]}"
-        cleaned_headers.append(h_clean)
+    data = worksheet.get_all_records(head=2, expected_headers=filtered_headers)
+    df = pd.DataFrame(data)
 
-    df_raw = pd.DataFrame(data_rows, columns=cleaned_headers)
-
-    # List of duplicated base column names you want to consolidate
-    duplicates_to_consolidate = ['Post_Clicks', 'Total_Like_Reactions', 'Total_Love_Reactions']
-
-    df_cleaned = pd.DataFrame()
-
-    for col in df_raw.columns:
-        base = col.split("_")[0]
-        if base in duplicates_to_consolidate:
-            continue  # Skip now; we will handle all of them at once
-
-        df_cleaned[col] = df_raw[col]
-
-    # Consolidate duplicates properly
-    for base in duplicates_to_consolidate:
-        matching_cols = [c for c in df_raw.columns if c.startswith(base)]
-        subset = df_raw[matching_cols].apply(pd.to_numeric, errors='coerce')
-
-        row_means = subset.mean(axis=1).abs()
-        closest = []
-
-    for idx, row in subset.iterrows():
-        valid_vals = row.dropna().abs()
-        if valid_vals.empty:
-            closest.append(np.nan)
-        else:
-            mean_val = row_means[idx]
-            greater_eq_vals = valid_vals[valid_vals >= mean_val]
-            if not greater_eq_vals.empty:
-                selected_idx = greater_eq_vals.idxmin()
-            else:
-                selected_idx = valid_vals.idxmax()  # fallback to max if all < mean
-            closest_val = row.loc[selected_idx]
-            closest.append(closest_val)
-
-
-        df_cleaned[base] = closest
-
-    # Rename Created_Time and convert it
-    df_cleaned.columns = df_cleaned.columns.str.strip().str.replace(" ", "_").str.replace(".", "_")
-    df_cleaned['Created_Time'] = pd.to_datetime(df_cleaned['Created_Time'], errors='coerce')
-    df_cleaned = df_cleaned.dropna(subset=['Created_Time'])
-
-    # Make all numeric columns numeric
-    for col in ['Post_Clicks', 'Total_Like_Reactions', 'Total_Love_Reactions', 'Total_Reach', 'Total_Impressions', 'Total_Reactions']:
-        if col in df_cleaned.columns:
-            df_cleaned[col] = pd.to_numeric(df_cleaned[col], errors='coerce')
-
-    df = df_cleaned
+    df.columns = pd.Index(filtered_headers).str.strip().str.replace(' ', '_').str.replace('.', '_')
+    df['Created_Time'] = pd.to_datetime(df['Created_Time'])
 
 except Exception as e:
     st.error(f"\u274c Failed to load or process worksheet data.\n\nError:\n{e}")
