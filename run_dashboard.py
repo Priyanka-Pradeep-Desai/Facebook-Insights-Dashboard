@@ -112,7 +112,8 @@ def extract_hyperlinks_from_formula_using_api(worksheet, df_index):
     return pd.Series(hyperlinks, index=df_index)
 
 # Add the hyperlink column to df
-df['Hyperlink'] = extract_hyperlinks_from_formula_using_api(worksheet)
+df['Hyperlink'] = extract_hyperlinks_from_formula_using_api(worksheet, df.index)
+
 
 # 🛠️ Debug: Show extracted hyperlinks with corresponding Content
 debug_hyperlinks = extract_hyperlinks_from_formula_using_api(worksheet, df.index)
