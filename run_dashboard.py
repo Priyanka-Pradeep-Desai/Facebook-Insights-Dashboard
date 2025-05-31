@@ -90,9 +90,9 @@ for col_name, idx_list in col_map.items():
 df['Created_Time'] = pd.to_datetime(df['Created_Time'], errors='coerce')
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
-def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
+def extract_hyperlinks_from_formula_using_api(worksheet, df_index):
     # Use built-in gspread method to get raw formulas
-    formulas = worksheet.get(f"A{start_row}:A", value_render_option='FORMULA')
+    formulas = worksheet.get(f"A3:A{len(df_index) + 2}", value_render_option='FORMULA')
     
     url_pattern = r'HYPERLINK\("([^"]+)"'
 
@@ -108,7 +108,8 @@ def extract_hyperlinks_from_formula_using_api(worksheet, start_row=3):
         else:
             hyperlinks.append(None)
 
-    return hyperlinks[:len(df)]
+    # Return Series with matching index
+    return pd.Series(hyperlinks, index=df_index)
 
 # Add the hyperlink column to df
 df['Hyperlink'] = extract_hyperlinks_from_formula_using_api(worksheet)
