@@ -112,8 +112,7 @@ def extract_hyperlinks_from_formula_using_api(worksheet, df_index):
     return pd.Series(hyperlinks, index=df_index)
 
 # Add the hyperlink column to df
-df['Hyperlink'] = extract_hyperlinks_from_formula_using_api(worksheet, df.index)
-
+df['Hyperlink'] = extract_hyperlinks_from_formula_using_api(worksheet)
 
 # Step 4: Filter last 10 calendar days (including today)
 today = pd.Timestamp.now().normalize()
