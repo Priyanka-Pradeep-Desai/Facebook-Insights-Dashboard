@@ -91,24 +91,30 @@ df['Created_Time'] = pd.to_datetime(df['Created_Time'], errors='coerce')
 
 # Extract URLs from =HYPERLINK("url", "label") formulas in Google Sheets
 def extract_hyperlinks_from_formula_using_api(worksheet, df_index):
-    formulas = worksheet.get(f"A3:A{len(df_index) + 2}", value_render_option='FORMULA')
-    
-    url_pattern = r'HYPERLINK\("([^"]+)"'
-    hyperlinks = []
+    try:
+        formulas = worksheet.get(f"A3:A{len(df_index) + 2}", value_render_option='FORMULA')
+        url_pattern = r'HYPERLINK\("([^"]+)"'
+        hyperlinks = []
 
-    for row in formulas:
-        if row:
-            cell = row[0]
-            match = re.search(url_pattern, cell)
-            if match:
-                hyperlinks.append(match.group(1))
+        for row in formulas:
+            if row:
+                cell = row[0]
+                match = re.search(url_pattern, cell)
+                hyperlinks.append(match.group(1) if match else None)
             else:
                 hyperlinks.append(None)
-        else:
-            hyperlinks.append(None)
 
-    # Return a pandas Series with correct index
-    return pd.Series(hyperlinks, index=df_index)
+        # Pad or truncate to match df_index exactly
+        if len(hyperlinks) < len(df_index):
+            hyperlinks += [None] * (len(df_index) - len(hyperlinks))
+        elif len(hyperlinks) > len(df_index):
+            hyperlinks = hyperlinks[:len(df_index)]
+
+        return pd.Series(hyperlinks, index=df_index)
+
+    except Exception as e:
+        st.error(f"⚠️ Failed in hyperlink extraction: {e}")
+        return pd.Series([None] * len(df_index), index=df_index)
 
 
 # Add the hyperlink column to df
