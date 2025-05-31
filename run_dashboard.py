@@ -121,18 +121,18 @@ def extract_hyperlinks_from_formula_using_api(worksheet, df_index):
 df['Hyperlink'] = extract_hyperlinks_from_formula_using_api(worksheet, df.index)
 
 
-# 🛠️ Debug: Show extracted hyperlinks with corresponding Content
-debug_hyperlinks = extract_hyperlinks_from_formula_using_api(worksheet, df.index)
+# # 🛠️ Debug: Show extracted hyperlinks with corresponding Content
+# debug_hyperlinks = extract_hyperlinks_from_formula_using_api(worksheet, df.index)
 
-# Show as a table to verify
-debug_table = pd.DataFrame({
-    "Created_Time": df['Created_Time'],
-    "Content": df['Content'],
-    "Extracted_Hyperlink": debug_hyperlinks
-})
+# # Show as a table to verify
+# debug_table = pd.DataFrame({
+#     "Created_Time": df['Created_Time'],
+#     "Content": df['Content'],
+#     "Extracted_Hyperlink": debug_hyperlinks
+# })
 
-st.subheader("🔍 Debug: Extracted Hyperlink Table")
-st.dataframe(debug_table)
+# st.subheader("🔍 Debug: Extracted Hyperlink Table")
+# st.dataframe(debug_table)
 
 
 # Step 4: Filter last 10 calendar days (including today)
